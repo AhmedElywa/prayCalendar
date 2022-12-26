@@ -7,7 +7,7 @@ const Index: React.FC = () => {
   const [method, setMethod] = React.useState('5');
   const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(address)}&method=${method}`;
   return (
-    <div className="w-full text-gray-700 flex justify-center py-8 flex-col max-w-3xl mx-auto space-y-8">
+    <div className="w-full text-gray-700 flex justify-center py-8 px-4 flex-col max-w-3xl mx-auto space-y-8">
       <h1 className="font-bold text-2xl">Generate Pray Calendar Subscribe link</h1>
       <label htmlFor="address" className="flex flex-col font-medium text-gray-700 space-2-8">
         Address (City, State, Country) eg. Cairo, Egypt
