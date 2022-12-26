@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { getPrayerTimes } from '../../prayerTimes'
+import { getPrayerTimes } from 'prayerTimes'
 import ical, { ICalAlarmType } from 'ical-generator'
 import moment from 'moment/moment'
 
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				});
 				event.createAlarm({
 					type: ICalAlarmType.audio,
-					trigger: moment(startDate).subtract(15, 'minutes').toDate(),
+					triggerBefore: 15 * 60
 				})
 			}
 		}
