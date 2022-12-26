@@ -8,8 +8,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.status(405).send({message: 'Only GET requests allowed'});
 		return;
 	} else {
-		const { address } = req.query;
-		const prayerTimes = await getPrayerTimes(address as string);
+		const { address, method } = req.query;
+		const prayerTimes = await getPrayerTimes(address as string, method ? +method : 5);
 		const allowedEvents = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 		const calendar = ical({
 			name: 'Prayer Times',

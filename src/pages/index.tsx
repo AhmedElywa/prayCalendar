@@ -1,9 +1,11 @@
 import React from 'react';
 import CopyText from 'Components/CopyText';
+import defaultMethod from 'Components/defaultMethod';
 
 const Index: React.FC = () => {
   const [address, setAddress] = React.useState('');
-  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(address)}`;
+  const [method, setMethod] = React.useState('5');
+  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(address)}&method=${method}`;
   return (
     <div className="w-full text-gray-700 flex justify-center py-8 flex-col max-w-3xl mx-auto space-y-8">
       <h1 className="font-bold text-2xl">Generate Pray Calendar Subscribe link</h1>
@@ -17,7 +19,13 @@ const Index: React.FC = () => {
           onChange={(event) => setAddress(event.target.value)}
         />
       </label>
-      <a href={link} className="bg-blue-500 text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600">
+      <label className="flex flex-col font-medium text-gray-700 space-2-8">
+        Method
+        <select defaultValue={method} onChange={(event) => setMethod(event.target.value)} className="border p-2 rounded-md border-sky-400">
+          {defaultMethod.map((method) => (<option key={method.value} value={method.value}>{method.label}</option>))}
+        </select>
+      </label>
+      <a href={link} className="bg-blue-500 text-center text-white font-bold py-2 px-4 rounded-full hover:bg-blue-600">
         Subscribe to Calendar
       </a>
       <div className="flex flex-col">
