@@ -8,7 +8,7 @@ const Index: React.FC = () => {
     <div className="w-full text-gray-700 flex justify-center py-8 flex-col max-w-3xl mx-auto space-y-8">
       <h1 className="font-bold text-2xl">Generate Pray Calendar Subscribe link</h1>
       <label htmlFor="address" className="flex flex-col font-medium text-gray-700 space-2-8">
-        Address
+        Address (City, State, Country) eg. Cairo, Egypt
         <input
           id="address"
           name="address"
