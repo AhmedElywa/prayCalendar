@@ -10,13 +10,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } else {
     const { address, method, alarm, duration } = req.query;
     const prayerTimes = await getPrayerTimes(address as string, method ? +method : 5);
+    if (!prayerTimes) {
+      res.status(400).send({ message: 'Invalid address' });
+      return;
+    }
+    const days = Object.values(prayerTimes.data).flatMap((month) => month);
     const allowedEvents = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
     const calendar = ical({
       name: 'Prayer Times',
-      timezone: prayerTimes.data[0].meta.timezone,
+      timezone: days[0].meta.timezone,
     });
 
-    for (const day of prayerTimes.data) {
+    for (const day of days) {
       for (const [name, time] of Object.entries(day.timings)) {
         if (!allowedEvents.includes(name)) continue;
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
