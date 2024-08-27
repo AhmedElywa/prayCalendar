@@ -66,6 +66,7 @@ const Index: React.FC = () => {
             onChange={(event) => setAlarm(event.target.value)}
             className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
           >
+            <option value="0">No alarm</option>
             <option value="5">5 minutes</option>
             <option value="10">10 minutes</option>
             <option value="15">15 minutes</option>

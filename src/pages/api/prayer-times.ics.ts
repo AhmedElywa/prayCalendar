@@ -33,10 +33,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           summary: name,
           timezone: day.meta.timezone,
         });
-        event.createAlarm({
-          type: ICalAlarmType.audio,
-          triggerBefore: (alarm ? +alarm : 15) * 60,
-        });
+        if (alarm != 0) {
+            event.createAlarm({
+                type: ICalAlarmType.audio,
+                triggerBefore: (alarm ? +alarm : 15) * 60,
+            });
+        }
       }
     }
     res.setHeader('Content-Type', 'text/calendar');
