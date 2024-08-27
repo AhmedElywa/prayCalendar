@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .add(duration ? +duration : 25, 'minute')
             .toDate(),
           summary: name,
+          timezone: day.meta.timezone,
         });
         event.createAlarm({
           type: ICalAlarmType.audio,
