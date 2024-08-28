@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .toDate(),
           summary: name,
         });
-        if (+alarm !== 0) {
+        if (alarm && +alarm > 0) {
             event.createAlarm({
                 type: ICalAlarmType.audio,
                 triggerBefore: (alarm ? +alarm : 15) * 60,
