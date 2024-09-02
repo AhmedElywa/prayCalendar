@@ -89,6 +89,12 @@ const Index: React.FC = () => {
       <a href={link} className="rounded-full bg-blue-500 px-4 py-2 text-center font-bold text-white hover:bg-blue-600">
         Subscribe to Calendar
       </a>
+      <div className="font-bold">
+        <span className="text-5xl animate-ping">👉 </span> You can edit the subscribe link and add arguments from the docs{' '}
+        <a className="text-blue-300 hover:underline" href="https://aladhan.com/prayer-times-api#tag/Monthly-Annual-Prayer-Times-Calendar/paths/~1v1~1calendarByAddress~1%7Byear%7D~1%7Bmonth%7D/get" target="_blank" rel="noreferrer">
+          Prayer Times Calendar by address
+        </a>
+      </div>
       <div className="flex flex-col">
         <div className="font-semibold">Or copy this link:</div>
         <CopyText text={link} />
