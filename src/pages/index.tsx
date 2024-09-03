@@ -85,22 +85,31 @@ const Index: React.FC = () => {
           />
         </label>
       </div>
-
-      <a href={link} className="rounded-full bg-blue-500 px-4 py-2 text-center font-bold text-white hover:bg-blue-600">
-        Subscribe to Calendar
-      </a>
+      <div className="flex max-w-full flex-col">
+        <div className="font-semibold">Copy this link:</div>
+        <CopyText text={link} />
+      </div>
       <div className="font-bold">
-        <span className="text-5xl animate-ping">👉 </span> You can edit the subscribe link and add arguments from the docs{' '}
-        <a className="text-blue-300 hover:underline" href="https://aladhan.com/prayer-times-api#tag/Monthly-Annual-Prayer-Times-Calendar/paths/~1v1~1calendarByAddress~1%7Byear%7D~1%7Bmonth%7D/get" target="_blank" rel="noreferrer">
+        <span className="animate-ping text-5xl">👉 </span> You can edit the subscribe link and add arguments from the
+        docs{' '}
+        <a
+          className="text-blue-300 hover:underline"
+          href="https://aladhan.com/prayer-times-api#tag/Monthly-Annual-Prayer-Times-Calendar/paths/~1v1~1calendarByAddress~1%7Byear%7D~1%7Bmonth%7D/get"
+          target="_blank"
+          rel="noreferrer"
+        >
           Prayer Times Calendar by address
         </a>
       </div>
-      <div className="flex flex-col">
-        <div className="font-semibold">Or copy this link:</div>
-        <CopyText text={link} />
-      </div>
-      <h2 className="font-bold">To add a calendar subscription link to Google Calendar, follow these steps:</h2>
-      <ul className="my-4 list-decimal pl-6 text-lg leading-7">
+      <h2 className='font-bold'>To add a calendar subscription link to Google Calendar, follow these steps:<a
+        className='text-blue-300 hover:underline'
+        href='https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop'
+        target='_blank'
+        rel='noreferrer'
+      >
+        Full Docs Here
+      </a></h2>
+      <ul className='my-4 list-decimal pl-6 text-lg leading-7'>
         <li>Open Google Calendar in a web browser.</li>
         <li>Click the "Add calendar" button in the left sidebar.</li>
         <li>Select "From URL" from the menu.</li>
@@ -108,7 +117,17 @@ const Index: React.FC = () => {
         <li>Click the "Add Calendar" button.</li>
         <li>The calendar should now appear in your list of calendars in Google Calendar.</li>
       </ul>
-      <h2 className="font-bold">To add a calendar subscription link to Microsoft Outlook, follow these steps:</h2>
+      <h2 className="font-bold">
+        To add a calendar subscription link to Microsoft Outlook, follow these steps:{' '}
+        <a
+          className="text-blue-300 hover:underline"
+          href="https://support.microsoft.com/en-us/office/import-or-subscribe-to-a-calendar-in-outlook-com-or-outlook-on-the-web-cff1429c-5af6-41ec-a5b4-74f2c278e98c"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Full Docs Here
+        </a>
+      </h2>
       <ul className="my-4 list-decimal pl-6 text-lg leading-7">
         <li>Open Microsoft Outlook in a web browser.</li>
         <li>Click the "Calendar" button in the left sidebar.</li>
@@ -117,14 +136,26 @@ const Index: React.FC = () => {
         <li>Click the "OK" button.</li>
         <li>The calendar should now appear in your list of calendars in Microsoft Outlook.</li>
       </ul>
-      <h2 className="font-bold">To add a calendar subscription link to Apple Calendar, follow these steps:</h2>
-      <ul className="my-4 list-decimal pl-6 text-lg leading-7">
-        <li>Open Apple Calendar in a web browser.</li>
-        <li>Click the "File" menu, and select "New Calendar Subscription" from the menu.</li>
-        <li>Paste the calendar subscription link into the "Calendar URL" field.</li>
-        <li>Click the "Subscribe" button.</li>
-        <li>The calendar should now appear in your list of calendars in Apple Calendar.</li>
-      </ul>
+      <div>
+        <h2 className="font-bold">
+          To add a calendar subscription link to Apple Calendar, follow these steps:{' '}
+          <a
+            className="text-blue-300 hover:underline"
+            href="https://support.apple.com/en-eg/102301"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Full Docs Here
+          </a>
+        </h2>
+        <ul className="my-4 list-decimal pl-6 text-lg leading-7">
+          <li>Open Apple Calendar.</li>
+          <li>Click the "File" menu, and select "New Calendar Subscription" from the menu.</li>
+          <li>Paste the calendar subscription link into the "Calendar URL" field.</li>
+          <li>Click the "Subscribe" button.</li>
+          <li>The calendar should now appear in your list of calendars in Apple Calendar.</li>
+        </ul>
+      </div>
     </div>
   );
 };
