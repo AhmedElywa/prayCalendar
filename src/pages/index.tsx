@@ -101,15 +101,18 @@ const Index: React.FC = () => {
           Prayer Times Calendar by address
         </a>
       </div>
-      <h2 className='font-bold'>To add a calendar subscription link to Google Calendar, follow these steps:<a
-        className='text-blue-300 hover:underline'
-        href='https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop'
-        target='_blank'
-        rel='noreferrer'
-      >
-        Full Docs Here
-      </a></h2>
-      <ul className='my-4 list-decimal pl-6 text-lg leading-7'>
+      <h2 className="font-bold">
+        To add a calendar subscription link to Google Calendar, follow these steps:{' '}
+        <a
+          className="text-blue-300 hover:underline"
+          href="https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Full Docs Here
+        </a>
+      </h2>
+      <ul className="my-4 list-decimal pl-6 text-lg leading-7">
         <li>Open Google Calendar in a web browser.</li>
         <li>Click the "Add calendar" button in the left sidebar.</li>
         <li>Select "From URL" from the menu.</li>
