@@ -9,12 +9,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   } else {
     const { alarm, duration, ...rest } = req.query;
-    const prayerTimes = await getPrayerTimes(rest as any);
-    if (!prayerTimes) {
+    const days = await getPrayerTimes(rest as any);
+    if (!days) {
       res.status(400).send({ message: 'Invalid address' });
       return;
     }
-    const days = Object.values(prayerTimes.data).flatMap((month) => month);
     const allowedEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
     const calendar = ical({
       name: 'Prayer Times',
@@ -22,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     for (const day of days) {
+      if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment(), 'day')) continue;
       for (const [name, time] of Object.entries(day.timings)) {
         if (!allowedEvents.includes(name)) continue;
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();

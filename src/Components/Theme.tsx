@@ -1,4 +1,4 @@
-import { Menu, Transition } from '@headlessui/react';
+import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import React, { Fragment, useEffect, useState } from 'react';
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import { classNames } from 'utils';
@@ -58,13 +58,13 @@ const ThemeMenu: React.FC = () => {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
-        <Menu.Button className="rounded-md p-2 hover:bg-gray-500/50">
+        <MenuButton className="rounded-md p-2 hover:bg-gray-500/50">
           {dark ? (
             <MoonIcon className="h-5 w-5" aria-hidden="true" />
           ) : (
             <SunIcon className="h-5 w-5" aria-hidden="true" />
           )}
-        </Menu.Button>
+        </MenuButton>
       </div>
       <Transition
         as={Fragment}
@@ -75,15 +75,15 @@ const ThemeMenu: React.FC = () => {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-700">
+        <MenuItems className="absolute right-0 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-slate-700">
           <div className="py-1">
             {themes.map((item) => (
-              <Menu.Item key={item.name}>
-                {({ active }) => (
+              <MenuItem key={item.name}>
+                {({ focus }) => (
                   <a
                     onClick={() => setTheme(item.name)}
                     className={classNames(
-                      active ? 'bg-gray-100/50 dark:bg-gray-100/10' : '',
+                      focus ? 'bg-gray-100/50 dark:bg-gray-100/10' : '',
                       theme === item.name ? 'text-sky-400' : 'text-gray-800 dark:text-gray-50',
                       'flex cursor-pointer items-center space-x-2 px-4 py-2 text-sm',
                     )}
@@ -92,10 +92,10 @@ const ThemeMenu: React.FC = () => {
                     <span>{item.name}</span>
                   </a>
                 )}
-              </Menu.Item>
+              </MenuItem>
             ))}
           </div>
-        </Menu.Items>
+        </MenuItems>
       </Transition>
     </Menu>
   );

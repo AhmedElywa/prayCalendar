@@ -1,5 +1,6 @@
 import axios from 'axios';
-const API_URL = `https://api.aladhan.com/v1/calendarByAddress/${new Date().getFullYear()}`;
+import moment from 'moment/moment';
+const API_URL = `https://api.aladhan.com/v1/calendarByAddress/`;
 
 type Day = {
 	timings: {
@@ -106,10 +107,10 @@ function toLatitudeAdjustmentMethod(value: any): Params['latitudeAdjustmentMetho
 type Response = {
 	code: number;
 	status: string;
-	data: Record<string, Day>;
+	data: Day[];
 }
 
-export async function getPrayerTimes(params: Record<keyof Params,  string>): Promise<Response | undefined> {
+export async function getPrayerTimes(params: Record<keyof Params,  string>): Promise<Response['data'] | undefined> {
 	// the params object coming from url query string will be passed to this function as an argument
 	// we should convert the types from string to the correct types
 	const convertedParams: Params = {
@@ -124,10 +125,18 @@ export async function getPrayerTimes(params: Record<keyof Params,  string>): Pro
 		iso8601: params.iso8601 === 'true',
 	};
 	try {
-		const response = await axios.get(API_URL, {
-			params: convertedParams,
-		});
-		return response.data;
+		const data: Day[] = [];
+		for (let i = 0; i < 3; i++) {
+			const date = moment().add(i, 'month')
+			const year = date.format('YYYY');
+			const month = date.format('MM');
+			const URL = `${API_URL}${year}/${month}`;
+			const response = await axios.get<Response>(URL, {
+				params: convertedParams,
+			});
+			data.push(...response.data.data);
+		}
+		return data;
 	} catch (error) {
 		console.error(error);
 	}
