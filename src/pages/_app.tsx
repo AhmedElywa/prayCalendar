@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { AppProps } from 'next/app';
 import * as React from 'react';
+import { Analytics } from '@vercel/analytics/next';
 import 'styles/globals.css';
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -30,6 +31,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="manifest" href="/site.webmanifest" />
       </Head>
       <Component {...pageProps} />
+      <Analytics />
     </>
   );
 }
