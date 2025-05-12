@@ -8,9 +8,22 @@ const Index: React.FC = () => {
   const [method, setMethod] = React.useState('5');
   const [alarm, setAlarm] = React.useState('5');
   const [duration, setDuration] = React.useState(25);
+
+  const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+  const [selectedEvents, setSelectedEvents] = React.useState<number[]>(allEvents.map((_, index) => index));
+
+  const handleEventToggle = (index: number) => {
+    setSelectedEvents((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index].sort((a, b) => a - b),
+    );
+  };
+
+  const eventsParam = selectedEvents.length === allEvents.length ? '' : `&events=${selectedEvents.join(',')}`;
+
   const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(
     address,
-  )}&method=${method}&alarm=${alarm}&duration=${duration}`;
+  )}&method=${method}&alarm=${alarm}&duration=${duration}${eventsParam}`;
+
   return (
     <div className="mx-auto mb-6 flex min-h-screen max-w-screen-lg flex-col space-y-8 bg-gray-50 px-4 text-gray-900 selection:bg-gray-800 selection:text-gray-100 dark:bg-zinc-800 dark:text-gray-100 dark:selection:bg-gray-100 dark:selection:text-gray-900">
       <nav id="home" className="relative w-full py-4 print:hidden">
@@ -44,7 +57,7 @@ const Index: React.FC = () => {
           onChange={(event) => setAddress(event.target.value)}
         />
       </label>
-      <label className="space-2-8 flex flex-col  font-medium">
+      <label className="space-2-8 flex flex-col font-medium">
         Method
         <select
           defaultValue={method}
@@ -85,6 +98,24 @@ const Index: React.FC = () => {
           />
         </label>
       </div>
+
+      <div className="space-y-2">
+        <div className="font-medium">Select Prayer Events</div>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {allEvents.map((event, index) => (
+            <label key={index} className="flex cursor-pointer items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={selectedEvents.includes(index)}
+                onChange={() => handleEventToggle(index)}
+                className="h-4 w-4"
+              />
+              <span>{event}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       <div className="flex max-w-full flex-col">
         <div className="font-semibold">Copy this link:</div>
         <CopyText text={link} />

@@ -8,13 +8,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).send({ message: 'Only GET requests allowed' });
     return;
   } else {
-    const { alarm, duration, ...rest } = req.query;
+    const { alarm, duration, events, ...rest } = req.query;
     const days = await getPrayerTimes(rest as any);
     if (!days) {
       res.status(400).send({ message: 'Invalid address' });
       return;
     }
-    const allowedEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+    const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+    const allowedEvents = events
+      ? (events as string)
+          .split(',')
+          .map((index) => allEvents[parseInt(index)])
+          .filter(Boolean)
+      : allEvents;
+
     const calendar = ical({
       name: 'Prayer Times',
       timezone: days[0].meta.timezone,
@@ -28,17 +35,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const defaultDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
         const event = calendar.createEvent({
           start: startDate,
-          end: moment(startDate)
-            .add(defaultDuration, 'minute')
-            .toDate(),
+          end: moment(startDate).add(defaultDuration, 'minute').toDate(),
           summary: name,
           timezone: day.meta.timezone,
         });
         if (alarm && +alarm > 0) {
-            event.createAlarm({
-                type: ICalAlarmType.audio,
-                triggerBefore: +alarm * 60,
-            });
+          event.createAlarm({
+            type: ICalAlarmType.audio,
+            triggerBefore: +alarm * 60,
+          });
         }
       }
     }
