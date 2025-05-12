@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Index from './index';
+import Index from '../../pages/index';
 
 // Mock the CopyText component
 jest.mock('Components/CopyText', () => {

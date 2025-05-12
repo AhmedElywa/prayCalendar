@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import handler from './prayer-times.ics';
+import handler from '../../../pages/api/prayer-times.ics';
 import { getPrayerTimes } from 'prayerTimes';
 
 // Mock the modules

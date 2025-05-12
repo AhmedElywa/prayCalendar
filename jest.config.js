@@ -7,7 +7,7 @@ module.exports = {
     '^prayerTimes$': '<rootDir>/src/prayerTimes.ts',
   },
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel-jest.config.js' }],
   },
   globals: {
     'ts-jest': {
@@ -15,4 +15,5 @@ module.exports = {
     },
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
 };
