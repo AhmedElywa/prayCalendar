@@ -26,10 +26,11 @@ jest.mock('ical-generator', () => {
   };
 });
 
+const addMock = jest.fn().mockReturnThis();
 jest.mock('moment/moment', () => {
   const momentMock = jest.fn(() => ({
     toDate: jest.fn().mockReturnValue(new Date()),
-    add: jest.fn().mockReturnThis(),
+    add: addMock,
     isBefore: jest.fn().mockReturnValue(false),
   }));
 
@@ -104,6 +105,14 @@ describe('Prayer Times API', () => {
     await handler(req as NextApiRequest, res as NextApiResponse);
     expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/calendar');
     expect(res.send).toHaveBeenCalledWith('calendar-content');
+  });
+
+  it('respects zero duration in query', async () => {
+    if (req.query) {
+      req.query.duration = '0';
+    }
+    await handler(req as NextApiRequest, res as NextApiResponse);
+    expect(addMock).toHaveBeenCalledWith(0, 'minute');
   });
 
   it('filters events based on events query parameter', async () => {

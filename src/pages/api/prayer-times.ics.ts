@@ -32,7 +32,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       for (const [name, time] of Object.entries(day.timings)) {
         if (!allowedEvents.includes(name)) continue;
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
-        const defaultDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
+        const defaultDuration =
+          name === 'Sunrise'
+            ? 10
+            : name === 'Midnight'
+            ? 1
+            : duration !== undefined
+            ? +duration
+            : 25;
         const event = calendar.createEvent({
           start: startDate,
           end: moment(startDate).add(defaultDuration, 'minute').toDate(),
