@@ -1,43 +1,27 @@
 'use client';
 import React from 'react';
-import Navigation from '../../Components/Navigation';
 import LocationInputs from '../../Components/LocationInputs';
 import PrayerPreview from '../../Components/PrayerPreview';
 import MethodSelect from '../../Components/MethodSelect';
-import Footer from '../../Components/Footer';
-import { useLanguage, useLocationFields, useTimingsPreview } from '../../hooks';
+import PageLayout from '../../Components/PageLayout';
+import { useAppContext } from '../../contexts/AppContext';
+import { useTimingsPreview } from '../../hooks';
 import { translations } from '../../constants/translations';
 
 export default function PrayApp() {
-  const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
-  const { lang, setLang } = useLanguage(browserLang);
-
-  const locationFields = useLocationFields();
+  const { lang, setLang, locationFields } = useAppContext();
   const [collapsed, setCollapsed] = React.useState(false);
   const [method, setMethod] = React.useState('5');
 
   React.useEffect(() => {
-    const saved = localStorage.getItem('pwaLocation');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (data.inputMode === 'address') {
-          locationFields.setInputMode('address');
-          locationFields.setAddress(data.address || '');
-        } else {
-          locationFields.setInputMode('coords');
-          locationFields.setLatitude(data.latitude || '');
-          locationFields.setLongitude(data.longitude || '');
-        }
-        if (data.method) setMethod(String(data.method));
-        setCollapsed(true);
-      } catch {}
-    }
+    const savedLoc = localStorage.getItem('location');
+    if (savedLoc) setCollapsed(true);
+    const savedMethod = localStorage.getItem('pwaMethod');
+    if (savedMethod) setMethod(savedMethod);
   }, []);
 
   const handleSave = () => {
-    const { inputMode, address, latitude, longitude } = locationFields;
-    localStorage.setItem('pwaLocation', JSON.stringify({ inputMode, address, latitude, longitude, method }));
+    localStorage.setItem('pwaMethod', method);
     setCollapsed(true);
   };
 
@@ -55,12 +39,12 @@ export default function PrayApp() {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-zinc-800">
-      <Navigation lang={lang} setLang={setLang} />
+    <PageLayout>
       <div className="mx-auto max-w-screen-sm space-y-6 px-4 py-8">
         {!collapsed && (
           <div className="space-y-4">
             <LocationInputs lang={lang} {...locationFields} />
+            <MethodSelect lang={lang} method={method} setMethod={setMethod} />
             <button
               type="button"
               onClick={handleSave}
@@ -81,10 +65,9 @@ export default function PrayApp() {
             </button>
           </div>
         )}
-        <MethodSelect lang={lang} method={method} setMethod={setMethod} />
+        {collapsed && <MethodSelect lang={lang} method={method} setMethod={setMethod} />}
         <PrayerPreview lang={lang} loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
       </div>
-      <Footer lang={lang} />
-    </main>
+    </PageLayout>
   );
 }

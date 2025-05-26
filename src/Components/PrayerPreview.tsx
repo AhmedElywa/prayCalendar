@@ -13,10 +13,16 @@ interface PrayerPreviewProps {
 
 export default function PrayerPreview({ lang, loadingNext, nextPrayer, todayTimings }: PrayerPreviewProps) {
   const formatDiff = (ms: number) => {
-    const mins = Math.max(0, Math.round(ms / 60000));
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return `${h ? `${h}h ` : ''}${m}m`;
+    const diff = Math.max(0, ms);
+    const totalSeconds = Math.floor(diff / 1000);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const parts = [] as string[];
+    if (h) parts.push(`${h}h`);
+    parts.push(`${m}m`);
+    parts.push(`${s}s`);
+    return parts.join(' ');
   };
 
   const [remaining, setRemaining] = React.useState<number | null>(null);
