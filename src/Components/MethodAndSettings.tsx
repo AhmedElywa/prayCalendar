@@ -1,11 +1,10 @@
 import React from 'react';
 import { translations } from '../constants/translations';
-import type { Lang } from '../hooks/useLanguage';
 import { CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { MethodSelectFields } from './MethodSelect';
+import { useAppContext } from '../contexts/AppContext';
 
 interface MethodAndSettingsProps {
-  lang: Lang;
   method: string;
   setMethod: (method: string) => void;
   duration: number;
@@ -15,7 +14,6 @@ interface MethodAndSettingsProps {
 }
 
 export default function MethodAndSettings({
-  lang,
   method,
   setMethod,
   duration,
@@ -23,12 +21,13 @@ export default function MethodAndSettings({
   months,
   setMonths,
 }: MethodAndSettingsProps) {
+  const { lang } = useAppContext();
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       <div className="space-y-6">
         {/* method selection */}
         <div>
-          <MethodSelectFields lang={lang} method={method} setMethod={setMethod} />
+          <MethodSelectFields method={method} setMethod={setMethod} />
         </div>
 
         {/* duration and months */}
