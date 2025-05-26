@@ -15,7 +15,7 @@ interface UseTimingsPreviewDeps {
 export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
   const { inputMode, address, latitude, longitude, method, lang } = deps;
   const [loading, setLoading] = React.useState(false);
-  const [nextPrayer, setNextPrayer] = React.useState<{ name: string; diffMs: number } | null>(null);
+  const [nextPrayer, setNextPrayer] = React.useState<{ name: string; time: number } | null>(null);
   const [todayTimings, setTodayTimings] = React.useState<Record<string, string> | null>(null);
 
   React.useEffect(() => {
@@ -38,13 +38,13 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
 
         const order = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
         const now = new Date();
-        let upcoming: { name: string; diffMs: number } | null = null;
+        let upcoming: { name: string; time: number } | null = null;
         for (const ev of order) {
           const [h, m] = timings[ev].split(':').map(Number);
           const d = new Date(now);
           d.setHours(h, m, 0, 0);
           if (d > now) {
-            upcoming = { name: ev, diffMs: d.getTime() - now.getTime() };
+            upcoming = { name: ev, time: d.getTime() };
             break;
           }
         }

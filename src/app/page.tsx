@@ -8,6 +8,7 @@ import MethodAndSettings from '../Components/MethodAndSettings';
 import AdvancedOptions from '../Components/AdvancedOptions';
 import PrayerPreview from '../Components/PrayerPreview';
 import InstructionsSection from '../Components/InstructionsSection';
+import Footer from '../Components/Footer';
 import { useLanguage, useLocationFields, useTimingsPreview } from '../hooks';
 import { translations } from '../constants/translations';
 import { eventNames, alarmOptionsData } from '../constants/prayerData';
@@ -135,6 +136,7 @@ export default function HomePage() {
           <InstructionsSection lang={lang} />
         </div>
       </div>
+      <Footer lang={lang} />
     </main>
   );
 }

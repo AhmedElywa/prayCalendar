@@ -3,6 +3,8 @@ import React from 'react';
 import Navigation from '../../Components/Navigation';
 import LocationInputs from '../../Components/LocationInputs';
 import PrayerPreview from '../../Components/PrayerPreview';
+import MethodSelect from '../../Components/MethodSelect';
+import Footer from '../../Components/Footer';
 import { useLanguage, useLocationFields, useTimingsPreview } from '../../hooks';
 import { translations } from '../../constants/translations';
 
@@ -12,6 +14,7 @@ export default function PrayApp() {
 
   const locationFields = useLocationFields();
   const [collapsed, setCollapsed] = React.useState(false);
+  const [method, setMethod] = React.useState('5');
 
   React.useEffect(() => {
     const saved = localStorage.getItem('pwaLocation');
@@ -26,6 +29,7 @@ export default function PrayApp() {
           locationFields.setLatitude(data.latitude || '');
           locationFields.setLongitude(data.longitude || '');
         }
+        if (data.method) setMethod(String(data.method));
         setCollapsed(true);
       } catch {}
     }
@@ -33,7 +37,7 @@ export default function PrayApp() {
 
   const handleSave = () => {
     const { inputMode, address, latitude, longitude } = locationFields;
-    localStorage.setItem('pwaLocation', JSON.stringify({ inputMode, address, latitude, longitude }));
+    localStorage.setItem('pwaLocation', JSON.stringify({ inputMode, address, latitude, longitude, method }));
     setCollapsed(true);
   };
 
@@ -46,7 +50,7 @@ export default function PrayApp() {
     address: locationFields.address,
     latitude: locationFields.latitude,
     longitude: locationFields.longitude,
-    method: '5',
+    method,
     lang,
   });
 
@@ -77,8 +81,10 @@ export default function PrayApp() {
             </button>
           </div>
         )}
+        <MethodSelect lang={lang} method={method} setMethod={setMethod} />
         <PrayerPreview lang={lang} loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
       </div>
+      <Footer lang={lang} />
     </main>
   );
 }
