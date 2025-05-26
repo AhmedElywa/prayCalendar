@@ -48,44 +48,40 @@ describe('Index component', () => {
     expect(copyText.textContent).toContain('method=0');
   });
 
-  it('updates alarm when select changes', () => {
+  it('updates alarm when checkboxes change', () => {
     render(<Index />);
-    const select = screen.getByLabelText(/Alarm/i);
-    fireEvent.change(select, { target: { value: '10' } });
+    const tenBefore = screen.getByLabelText('10 minutes before');
+    fireEvent.click(tenBefore);
 
-    const copyText = screen.getByTestId('copy-text');
+    let copyText = screen.getByTestId('copy-text');
+    expect(copyText.textContent).toContain('alarm=5,10');
+
+    fireEvent.click(screen.getByLabelText('5 minutes before'));
+    copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('alarm=10');
   });
 
   it('toggles prayer events when checkboxes are clicked', () => {
     render(<Index />);
 
-    // Get all checkboxes
-    const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBe(7); // There should be 7 prayer events
+    const eventNames = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+    const checkboxes = eventNames.map((name) => screen.getByLabelText(name));
+    expect(checkboxes.length).toBe(7);
 
-    // By default all should be checked
     checkboxes.forEach((checkbox) => {
       expect(checkbox).toBeChecked();
     });
 
-    // Uncheck the first prayer event (Fajr)
     fireEvent.click(checkboxes[0]);
-
-    // Now the link should include the events parameter with the remaining events
-    const copyText = screen.getByTestId('copy-text');
+    let copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('events=1,2,3,4,5,6');
 
-    // Uncheck the second prayer event (Sunrise)
     fireEvent.click(checkboxes[1]);
+    copyText = screen.getByTestId('copy-text');
+    expect(copyText.textContent).toContain('events=2,3,4,5,6');
 
-    // Now the link should include just the remaining events
-    expect(screen.getByTestId('copy-text').textContent).toContain('events=2,3,4,5,6');
-
-    // Check the first one again
     fireEvent.click(checkboxes[0]);
-
-    // Now the link should include the updated events
-    expect(screen.getByTestId('copy-text').textContent).toContain('events=0,2,3,4,5,6');
+    copyText = screen.getByTestId('copy-text');
+    expect(copyText.textContent).toContain('events=0,2,3,4,5,6');
   });
 });

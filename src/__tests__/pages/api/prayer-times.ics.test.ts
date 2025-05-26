@@ -26,19 +26,17 @@ jest.mock('ical-generator', () => {
   };
 });
 
-const addMock = jest.fn().mockReturnThis();
 jest.mock('moment/moment', () => {
+  const addMock = jest.fn().mockReturnThis();
   const momentMock = jest.fn(() => ({
     toDate: jest.fn().mockReturnValue(new Date()),
     add: addMock,
     isBefore: jest.fn().mockReturnValue(false),
   }));
-
-  // Add tz function to the mock
   (momentMock as any).tz = jest.fn().mockReturnThis();
-
-  return momentMock;
+  return { __esModule: true, default: momentMock, addMock };
 });
+import { addMock } from 'moment/moment';
 
 describe('Prayer Times API', () => {
   let req: Partial<NextApiRequest>;

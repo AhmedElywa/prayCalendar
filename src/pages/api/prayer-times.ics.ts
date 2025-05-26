@@ -33,24 +33,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!allowedEvents.includes(name)) continue;
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
         const defaultDuration =
-          name === 'Sunrise'
-            ? 10
-            : name === 'Midnight'
-            ? 1
-            : duration !== undefined
-            ? +duration
-            : 25;
+          name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration !== undefined ? +duration : 25;
         const event = calendar.createEvent({
           start: startDate,
           end: moment(startDate).add(defaultDuration, 'minute').toDate(),
           summary: name,
           timezone: day.meta.timezone,
         });
-        if (alarm && +alarm > 0) {
-          event.createAlarm({
-            type: ICalAlarmType.audio,
-            triggerBefore: +alarm * 60,
-          });
+        if (alarm) {
+          const alarmValues = (Array.isArray(alarm) ? alarm.join(',') : (alarm as string))
+            .split(',')
+            .map((a) => parseInt(a, 10))
+            .filter((a) => !isNaN(a));
+          for (const a of alarmValues) {
+            if (a > 0) {
+              event.createAlarm({
+                type: ICalAlarmType.audio,
+                triggerBefore: a * 60,
+              });
+            } else if (a < 0) {
+              event.createAlarm({
+                type: ICalAlarmType.audio,
+                triggerAfter: Math.abs(a) * 60,
+              });
+            } else {
+              event.createAlarm({
+                type: ICalAlarmType.audio,
+                trigger: 0,
+              });
+            }
+          }
         }
       }
     }
