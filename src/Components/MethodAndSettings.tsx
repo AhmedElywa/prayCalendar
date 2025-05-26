@@ -72,8 +72,16 @@ export default function MethodAndSettings({
             <div className="relative mt-1 rounded-md shadow-sm">
               <input
                 type="number"
+                step={1}
+                min={5}
+                max={60}
                 value={duration}
-                onChange={(e) => setDuration(+e.target.value)}
+                onChange={(e) => {
+                  const value = +e.target.value;
+                  if (value >= 5 && value <= 60) {
+                    setDuration(value);
+                  }
+                }}
                 className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
               />
               <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
@@ -89,10 +97,16 @@ export default function MethodAndSettings({
             <div className="relative mt-1 rounded-md shadow-sm">
               <input
                 type="number"
+                step={1}
                 min={1}
-                max={12}
+                max={11}
                 value={months}
-                onChange={(e) => setMonths(+e.target.value)}
+                onChange={(e) => {
+                  const value = +e.target.value;
+                  if (value <= 11) {
+                    setMonths(value);
+                  }
+                }}
                 className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
               />
               <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
