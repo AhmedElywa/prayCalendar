@@ -23,7 +23,7 @@ export default function InstallPrompt() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4">
-      <div className="max-w-screen-sm flex-1 rounded-lg bg-sky-50 p-4 shadow-lg dark:bg-sky-900/70">
+      <div className="max-w-screen-sm flex-1 rounded-lg bg-sky-50 p-4 shadow-lg dark:bg-sky-900">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="mb-1 font-medium text-gray-900 dark:text-white">{translations[lang].installTitle}</h3>
