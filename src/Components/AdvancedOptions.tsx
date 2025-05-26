@@ -1,11 +1,10 @@
 import React from 'react';
 import { translations } from '../constants/translations';
 import { alarmOptionsData } from '../constants/prayerData';
-import type { Lang } from '../hooks/useLanguage';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../contexts/AppContext';
 
 interface AdvancedOptionsProps {
-  lang: Lang;
   showAdvanced: boolean;
   setShowAdvanced: (show: boolean) => void;
   alarms: number[];
@@ -16,7 +15,6 @@ interface AdvancedOptionsProps {
 }
 
 export default function AdvancedOptions({
-  lang,
   showAdvanced,
   setShowAdvanced,
   alarms,
@@ -25,6 +23,7 @@ export default function AdvancedOptions({
   selectedEvents,
   handleEventToggle,
 }: AdvancedOptionsProps) {
+  const { lang } = useAppContext();
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       <button

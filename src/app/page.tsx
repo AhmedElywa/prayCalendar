@@ -15,7 +15,7 @@ import { eventNames, alarmOptionsData } from '../constants/prayerData';
 import { LinkIcon } from '@heroicons/react/24/outline';
 
 export default function HomePage() {
-  const { lang, setLang, locationFields } = useAppContext();
+  const { lang, locationFields } = useAppContext();
 
   /* ---------- other form state ---------- */
   const [method, setMethod] = React.useState('5');
@@ -82,11 +82,10 @@ export default function HomePage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             {/* Location Inputs */}
-            <LocationInputs lang={lang} {...locationFields} />
+            <LocationInputs />
 
             {/* Method and Settings */}
             <MethodAndSettings
-              lang={lang}
               method={method}
               setMethod={setMethod}
               duration={duration}
@@ -97,7 +96,6 @@ export default function HomePage() {
 
             {/* Advanced Options */}
             <AdvancedOptions
-              lang={lang}
               showAdvanced={showAdvanced}
               setShowAdvanced={setShowAdvanced}
               alarms={alarms}
@@ -119,13 +117,13 @@ export default function HomePage() {
 
           <div className="space-y-6">
             {/* Prayer Preview */}
-            <PrayerPreview lang={lang} loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
+            <PrayerPreview loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
           </div>
         </div>
 
         {/* Instructions */}
         <div className="mt-10">
-          <InstructionsSection lang={lang} />
+          <InstructionsSection />
         </div>
       </div>
     </PageLayout>
