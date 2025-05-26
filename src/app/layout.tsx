@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next';
 import '../styles/globals.css';
+import ServiceWorkerRegister from '../Components/ServiceWorkerRegister';
 
 export const metadata = {
   metadataBase: new URL('https://pray.ahmedelywa.com'),
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ fontFamily: `'Nunito', sans-serif` }} className="dark:bg-zinc-800">
         {children}
+        <ServiceWorkerRegister />
         <Analytics />
       </body>
     </html>

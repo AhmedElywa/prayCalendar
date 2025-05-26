@@ -51,6 +51,8 @@ export const translations = {
     inLabel: 'in',
     loadingNext: 'Loading next prayer…',
     eventsToday: "Today's prayer times",
+    saveLocation: 'Save location',
+    changeLocation: 'Change location',
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
@@ -104,5 +106,7 @@ export const translations = {
     inLabel: 'بعد',
     loadingNext: 'جارٍ تحميل الصلاة التالية…',
     eventsToday: 'مواقيت صلاة اليوم',
+    saveLocation: 'احفظ الموقع',
+    changeLocation: 'تغيير الموقع',
   },
 };
