@@ -21,7 +21,7 @@ export default function InstructionsSection({ lang }: InstructionsSectionProps) 
               {translations[lang].editHint}{' '}
               <a
                 className="font-medium text-sky-700 underline hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
-                href="https://aladhan.com/prayer-times-api#tag/Monthly-Annual-Prayer-Times-Calendar/paths/~1v1~1calendarByAddress~1%7Byear%7D~1%7Bmonth%7D/get"
+                href="https://aladhan.com/prayer-times-api#get-/timingsByAddress/-date-"
                 target="_blank"
                 rel="noreferrer"
               >
