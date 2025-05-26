@@ -98,7 +98,7 @@ describe('Prayer Times API', () => {
     (getPrayerTimes as jest.Mock).mockResolvedValue(undefined);
     await handler(req as NextApiRequest, res as NextApiResponse);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith({ message: 'Invalid address' });
+    expect(res.send).toHaveBeenCalledWith({ message: 'Invalid address or coordinates' });
   });
 
   it('returns ical data for valid request', async () => {
@@ -134,5 +134,17 @@ describe('Prayer Times API', () => {
     }
     await handler(req as NextApiRequest, res as NextApiResponse);
     expect(createEventMock).toHaveBeenCalledWith(expect.objectContaining({ summary: 'الفجر' }));
+  });
+  it('handles coordinate queries', async () => {
+    req.query = { latitude: '30', longitude: '31', method: '5' };
+    await handler(req as NextApiRequest, res as NextApiResponse);
+    expect(getPrayerTimes).toHaveBeenCalledWith(expect.objectContaining({ latitude: '30', longitude: '31' }), 3);
+    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/calendar');
+  });
+
+  it('respects months param', async () => {
+    req.query!.months = '6';
+    await handler(req as NextApiRequest, res as NextApiResponse);
+    expect(getPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 6);
   });
 });
