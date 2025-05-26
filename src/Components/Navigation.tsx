@@ -1,15 +1,12 @@
 import React from 'react';
 import ThemeMenu from './Theme';
 import { translations } from '../constants/translations';
-import type { Lang } from '../hooks/useLanguage';
 import { GlobeAltIcon, CodeBracketIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../contexts/AppContext';
+import type { Lang } from '../hooks/useLanguage';
 
-interface NavigationProps {
-  lang: Lang;
-  setLang: (lang: Lang) => void;
-}
-
-export default function Navigation({ lang, setLang }: NavigationProps) {
+export default function Navigation() {
+  const { lang, setLang } = useAppContext();
   return (
     <nav className="relative z-10 border-b border-gray-200 bg-white py-4 shadow-sm dark:border-gray-700 dark:bg-zinc-900 print:hidden">
       <div className="mx-auto max-w-screen-lg px-4">

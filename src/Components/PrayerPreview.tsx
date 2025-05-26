@@ -1,17 +1,17 @@
 import React from 'react';
 import { translations } from '../constants/translations';
 import { eventNames } from '../constants/prayerData';
-import type { Lang } from '../hooks/useLanguage';
 import { BellAlertIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../contexts/AppContext';
 
 interface PrayerPreviewProps {
-  lang: Lang;
   loadingNext: boolean;
   nextPrayer: { name: string; time: number } | null;
   todayTimings: Record<string, string> | null;
 }
 
-export default function PrayerPreview({ lang, loadingNext, nextPrayer, todayTimings }: PrayerPreviewProps) {
+export default function PrayerPreview({ loadingNext, nextPrayer, todayTimings }: PrayerPreviewProps) {
+  const { lang } = useAppContext();
   const formatDiff = (ms: number) => {
     const diff = Math.max(0, ms);
     const totalSeconds = Math.floor(diff / 1000);

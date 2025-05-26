@@ -1,16 +1,16 @@
 import React from 'react';
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { translations } from '../constants/translations';
-import type { Lang } from '../hooks/useLanguage';
 import defaultMethod from './defaultMethod';
+import { useAppContext } from '../contexts/AppContext';
 
 export interface MethodSelectProps {
-  lang: Lang;
   method: string;
   setMethod: (method: string) => void;
 }
 
-export function MethodSelectFields({ lang, method, setMethod }: MethodSelectProps) {
+export function MethodSelectFields({ method, setMethod }: MethodSelectProps) {
+  const { lang } = useAppContext();
   return (
     <>
       <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">

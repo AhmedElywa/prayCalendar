@@ -1,13 +1,10 @@
 import React from 'react';
 import { translations } from '../constants/translations';
-import type { Lang } from '../hooks/useLanguage';
 import { InformationCircleIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../contexts/AppContext';
 
-interface InstructionsSectionProps {
-  lang: Lang;
-}
-
-export default function InstructionsSection({ lang }: InstructionsSectionProps) {
+export default function InstructionsSection() {
+  const { lang } = useAppContext();
   return (
     <div className="space-y-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       {/* Hint about editing */}

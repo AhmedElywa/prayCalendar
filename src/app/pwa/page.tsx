@@ -9,7 +9,7 @@ import { useTimingsPreview } from '../../hooks';
 import { translations } from '../../constants/translations';
 
 export default function PrayApp() {
-  const { lang, setLang, locationFields } = useAppContext();
+  const { lang, locationFields } = useAppContext();
   const [collapsed, setCollapsed] = React.useState(false);
   const [method, setMethod] = React.useState('5');
 
@@ -43,8 +43,8 @@ export default function PrayApp() {
       <div className="mx-auto max-w-screen-sm space-y-6 px-4 py-8">
         {!collapsed && (
           <div className="space-y-4">
-            <LocationInputs lang={lang} {...locationFields} />
-            <MethodSelect lang={lang} method={method} setMethod={setMethod} />
+            <LocationInputs />
+            <MethodSelect method={method} setMethod={setMethod} />
             <button
               type="button"
               onClick={handleSave}
@@ -65,8 +65,8 @@ export default function PrayApp() {
             </button>
           </div>
         )}
-        {collapsed && <MethodSelect lang={lang} method={method} setMethod={setMethod} />}
-        <PrayerPreview lang={lang} loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
+        {collapsed && <MethodSelect method={method} setMethod={setMethod} />}
+        <PrayerPreview loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
       </div>
     </PageLayout>
   );

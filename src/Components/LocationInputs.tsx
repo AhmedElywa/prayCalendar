@@ -1,36 +1,22 @@
 import React from 'react';
 import { translations } from '../constants/translations';
-import type { Lang } from '../hooks/useLanguage';
-import type { InputMode } from '../hooks/useLocationFields';
 import { MapPinIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../contexts/AppContext';
 
-interface LocationInputsProps {
-  lang: Lang;
-  inputMode: InputMode;
-  setInputMode: (mode: InputMode) => void;
-  address: string;
-  setAddress: (address: string) => void;
-  latitude: number | '';
-  setLatitude: (lat: number | '') => void;
-  longitude: number | '';
-  setLongitude: (lon: number | '') => void;
-  locating: boolean;
-  handleUseLocation: () => void;
-}
-
-export default function LocationInputs({
-  lang,
-  inputMode,
-  setInputMode,
-  address,
-  setAddress,
-  latitude,
-  setLatitude,
-  longitude,
-  setLongitude,
-  locating,
-  handleUseLocation,
-}: LocationInputsProps) {
+export default function LocationInputs() {
+  const { lang, locationFields } = useAppContext();
+  const {
+    inputMode,
+    setInputMode,
+    address,
+    setAddress,
+    latitude,
+    setLatitude,
+    longitude,
+    setLongitude,
+    locating,
+    handleUseLocation,
+  } = locationFields;
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       {/* mode toggle */}

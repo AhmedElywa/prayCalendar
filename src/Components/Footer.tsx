@@ -1,13 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { translations } from '../constants/translations';
-import type { Lang } from '../hooks/useLanguage';
+import { useAppContext } from '../contexts/AppContext';
 
-interface FooterProps {
-  lang: Lang;
-}
-
-export default function Footer({ lang }: FooterProps) {
+export default function Footer() {
+  const { lang } = useAppContext();
   return (
     <footer className="border-t border-gray-200 bg-white py-4 dark:border-gray-700 dark:bg-zinc-900">
       <div className="mx-auto flex max-w-screen-lg items-center justify-center gap-6 px-4">
