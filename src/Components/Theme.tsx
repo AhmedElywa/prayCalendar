@@ -85,7 +85,7 @@ const ThemeMenu: React.FC = () => {
                     className={classNames(
                       focus ? 'bg-gray-100/50 dark:bg-gray-100/10' : '',
                       theme === item.name ? 'text-sky-400' : 'text-gray-800 dark:text-gray-50',
-                      'flex cursor-pointer items-center space-x-2 px-4 py-2 text-sm',
+                      'flex cursor-pointer items-center gap-2 px-4 py-2 text-sm',
                     )}
                   >
                     <item.icon className="h-5 w-5" aria-hidden="true" />

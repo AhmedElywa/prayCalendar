@@ -4,19 +4,24 @@ import defaultMethod from 'Components/defaultMethod';
 import ThemeMenu from 'Components/Theme';
 
 type Lang = 'en' | 'ar';
+type InputMode = 'address' | 'coords';
 
 const translations = {
   en: {
-    title: 'Generate Pray Calendar Subscribe link',
-    address: 'Address',
-    addressHint: '(must be in English)',
+    title: 'Generate Prayer Calendar Subscription Link',
+    addressRadio: 'By address',
+    coordsRadio: 'By coordinates (lat / lon)',
+    address: 'Location',
+    addressHint: '(City, State, Country – English)',
+    useLocation: 'Use my location',
+    locating: 'Locating…',
     addressPlaceholder: 'City, State, Country - eg. Cairo, Egypt',
     method: 'Method',
-    duration: 'Duration (minutes)',
-    months: 'Number of months',
+    duration: 'Alarm ring duration (min)',
+    months: 'Calendar length (months)',
     selectAlarms: 'Select Alarms',
     selectEvents: 'Select Prayer Events',
-    copy: 'Copy this link:',
+    copy: 'Copy subscribe link',
     source: 'Source Code',
     creator: 'Creator',
     editHint: 'You can edit the subscribe link and add arguments from the docs',
@@ -48,18 +53,28 @@ const translations = {
       'Click the "Subscribe" button.',
       'The calendar should now appear in your list of calendars in Apple Calendar.',
     ],
+    advanced: 'Advanced options',
+    copied: 'Copied!',
+    nextPrayer: 'Next prayer',
+    inLabel: 'in',
+    loadingNext: 'Loading next prayer…',
+    eventsToday: "Today's prayer times",
   },
   ar: {
-    title: 'إنشاء رابط تقويم الصلاة',
-    address: 'العنوان',
-    addressHint: '(يجب أن يكون الإدخال باللغة الإنجليزية)',
+    title: 'إنشاء رابط اشتراك تقويم الصلاة',
+    addressRadio: 'عن طريق العنوان',
+    coordsRadio: 'عن طريق الإحداثيات (خطّ العرض/خطّ الطول)',
+    address: 'الموقع',
+    addressHint: '(المدينة، الولاية، الدولة – بالإنجليزية)',
+    useLocation: 'استخدم موقعي',
+    locating: 'جارٍ تحديد الموقع…',
     addressPlaceholder: 'City, State, Country - eg. Cairo, Egypt',
     method: 'طريقة الحساب',
-    duration: 'المدة (بالدقائق)',
-    months: 'عدد الأشهر',
+    duration: 'مدة تنبيه الأذان (دقيقة)',
+    months: 'طول التقويم (أشهر)',
     selectAlarms: 'اختر التنبيهات',
     selectEvents: 'اختر الصلوات',
-    copy: 'انسخ هذا الرابط:',
+    copy: 'انسخ رابط الاشتراك',
     source: 'المصدر',
     creator: 'المطور',
     editHint: 'يمكنك تعديل رابط الاشتراك وإضافة معاملات من المستندات',
@@ -91,6 +106,12 @@ const translations = {
       'انقر على زر "اشتراك".',
       'سيظهر التقويم الآن في قائمة تقاويمك في تقويم آبل.',
     ],
+    advanced: 'خيارات متقدمة',
+    copied: 'تم النسخ!',
+    nextPrayer: 'الصلاة التالية',
+    inLabel: 'بعد',
+    loadingNext: 'جارٍ تحميل الصلاة التالية…',
+    eventsToday: 'مواقيت صلاة اليوم',
   },
 };
 
@@ -109,69 +130,238 @@ const alarmOptionsData = [
   { value: -10, label: { en: '10 minutes after', ar: 'بعد 10 دقائق' } },
 ];
 
-const Index: React.FC = () => {
-  const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
-  const [lang, setLang] = React.useState<Lang>(browserLang);
+/* ------------------------------------------------------------------ */
+/*  Custom hooks                                                      */
+/* ------------------------------------------------------------------ */
 
-  const [address, setAddress] = React.useState('');
-  const [method, setMethod] = React.useState('5');
-  React.useEffect(() => {
-    const stored = localStorage.getItem('lang') as Lang | null;
-    if (stored) setLang(stored);
-  }, []);
-
+/** language (en/ar) + document dir */
+function useLanguage(initial: Lang) {
+  const [lang, setLang] = React.useState<Lang>(initial);
   React.useEffect(() => {
     localStorage.setItem('lang', lang);
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
-    document.documentElement.dir = dir;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }, [lang]);
+  return { lang, setLang };
+}
 
-  const alarmOptions = alarmOptionsData;
-  const alarmOrder = alarmOptions.map((o) => o.value);
+/** location mode & fields + geolocation helper */
+function useLocationFields() {
+  const [inputMode, setInputMode] = React.useState<InputMode>('address');
+  const [address, setAddress] = React.useState('');
+  const [latitude, setLatitude] = React.useState<number | ''>('');
+  const [longitude, setLongitude] = React.useState<number | ''>('');
+  const [locating, setLocating] = React.useState(false);
+
+  // reset opposite fields when mode toggles
+  React.useEffect(() => {
+    if (inputMode === 'address') {
+      setLatitude('');
+      setLongitude('');
+    } else {
+      setAddress('');
+    }
+  }, [inputMode]);
+
+  const handleUseLocation = React.useCallback(() => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const { latitude: lat, longitude: lon } = coords;
+        if (inputMode === 'coords') {
+          setLatitude(lat);
+          setLongitude(lon);
+        } else {
+          try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
+              headers: { 'User-Agent': 'pray-calendar-app' },
+            });
+            const j = await r.json();
+            const a = j.address || {};
+            // Prefer city → town → village; then state & country
+            const city = a.city || a.town || a.village || '';
+            const state = a.state || a.county || '';
+            const country = a.country || '';
+            const formatted = [city, state, country].filter(Boolean).join(', ');
+            setAddress(formatted || `${lat},${lon}`);
+          } catch {
+            setAddress(`${lat},${lon}`);
+          }
+        }
+        setLocating(false);
+      },
+      () => setLocating(false),
+    );
+  }, [inputMode]);
+
+  return {
+    inputMode,
+    setInputMode,
+    address,
+    setAddress,
+    latitude,
+    setLatitude,
+    longitude,
+    setLongitude,
+    locating,
+    handleUseLocation,
+  };
+}
+
+/** fetch next‑prayer & today's timetable */
+function useTimingsPreview(deps: {
+  inputMode: InputMode;
+  address: string;
+  latitude: number | '';
+  longitude: number | '';
+  method: string;
+  lang: Lang;
+}) {
+  const { inputMode, address, latitude, longitude, method, lang } = deps;
+  const [loading, setLoading] = React.useState(false);
+  const [nextPrayer, setNextPrayer] = React.useState<{ name: string; diffMs: number } | null>(null);
+  const [todayTimings, setTodayTimings] = React.useState<Record<string, string> | null>(null);
+
+  React.useEffect(() => {
+    if ((inputMode === 'address' && !address) || (inputMode === 'coords' && (latitude === '' || longitude === ''))) {
+      setNextPrayer(null);
+      setTodayTimings(null);
+      return;
+    }
+    const fetchToday = async () => {
+      setLoading(true);
+      try {
+        const url =
+          inputMode === 'address'
+            ? `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(address)}&method=${method}`
+            : `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`;
+        const j = await (await fetch(url)).json();
+        if (j.code !== 200) throw new Error();
+        const timings: Record<string, string> = j.data.timings;
+        setTodayTimings(timings);
+
+        const order = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+        const now = new Date();
+        let upcoming: { name: string; diffMs: number } | null = null;
+        for (const ev of order) {
+          const [h, m] = timings[ev].split(':').map(Number);
+          const d = new Date(now);
+          d.setHours(h, m, 0, 0);
+          if (d > now) {
+            upcoming = { name: ev, diffMs: d.getTime() - now.getTime() };
+            break;
+          }
+        }
+        setNextPrayer(upcoming);
+      } catch {
+        setNextPrayer(null);
+        setTodayTimings(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchToday();
+  }, [inputMode, address, latitude, longitude, method, lang]);
+
+  return { loading, nextPrayer, todayTimings };
+}
+
+const Index: React.FC = () => {
+  /* ---------- language ---------- */
+  const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
+  const { lang, setLang } = useLanguage(browserLang);
+  const {
+    inputMode,
+    setInputMode,
+    address,
+    setAddress,
+    latitude,
+    setLatitude,
+    longitude,
+    setLongitude,
+    locating,
+    handleUseLocation,
+  } = useLocationFields();
+
+  /* ---------- location mode & fields ---------- */
+
+  /* ---------- other form state ---------- */
+  const [method, setMethod] = React.useState('5');
   const [alarms, setAlarms] = React.useState<number[]>([5]);
   const [duration, setDuration] = React.useState(25);
   const [months, setMonths] = React.useState(3);
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
 
+  /* ---------- events selection ---------- */
+  const alarmOrder = alarmOptionsData.map((o) => o.value);
   const allEvents = React.useMemo(() => eventNames[lang], [lang]);
-  const [selectedEvents, setSelectedEvents] = React.useState<number[]>(eventNames.en.map((_, index) => index));
+  const [selectedEvents, setSelectedEvents] = React.useState<number[]>(eventNames.en.map((_, i) => i));
 
-  const handleEventToggle = (index: number) => {
-    setSelectedEvents((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index].sort((a, b) => a - b),
+  const handleAlarmToggle = (v: number) =>
+    setAlarms((prev) =>
+      (prev.includes(v) ? prev.filter((a) => a !== v) : [...prev, v]).sort(
+        (a, b) => alarmOrder.indexOf(a) - alarmOrder.indexOf(b),
+      ),
     );
-  };
+  const handleEventToggle = (idx: number) =>
+    setSelectedEvents((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx].sort((a, b) => a - b),
+    );
 
-  const handleAlarmToggle = (value: number) => {
-    setAlarms((prev) => {
-      const exists = prev.includes(value);
-      const updated = exists ? prev.filter((a) => a !== value) : [...prev, value];
-      return updated.sort((a, b) => alarmOrder.indexOf(a) - alarmOrder.indexOf(b));
-    });
-  };
-
+  /* ---------- build ICS link ---------- */
   const eventsParam = selectedEvents.length === allEvents.length ? '' : `&events=${selectedEvents.join(',')}`;
   const alarmParam = alarms.length ? `&alarm=${alarms.join(',')}` : '';
   const monthsParam = months !== 3 ? `&months=${months}` : '';
+  const locationParam =
+    inputMode === 'address' ? `address=${encodeURIComponent(address)}` : `latitude=${latitude}&longitude=${longitude}`;
 
-  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(
+  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}&lang=${lang}`;
+
+  /* ---------- helpers ---------- */
+  const formatDiff = (ms: number) => {
+    const mins = Math.round(ms / 60000);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h ? `${h}h ` : ''}${m}m`;
+  };
+  const localizePrayer = (name: string) => {
+    const idx = eventNames.en.indexOf(name);
+    return idx === -1 ? name : eventNames[lang][idx];
+  };
+
+  // timings preview hook
+  const {
+    loading: loadingNext,
+    nextPrayer,
+    todayTimings,
+  } = useTimingsPreview({
+    inputMode,
     address,
-  )}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}&lang=${lang}`;
+    latitude,
+    longitude,
+    method,
+    lang,
+  });
 
+  /* ================================================================== */
+  /*  Render                                                            */
+  /* ================================================================== */
   return (
-    <div className="mx-auto mb-6 flex min-h-screen max-w-screen-lg flex-col space-y-8 bg-gray-50 px-4 text-gray-900 selection:bg-gray-800 selection:text-gray-100 dark:bg-zinc-800 dark:text-gray-100 dark:selection:bg-gray-100 dark:selection:text-gray-900">
-      <nav id="home" className="relative w-full py-4 print:hidden">
+    <div className="mx-auto mb-6 flex min-h-screen max-w-screen-lg flex-col space-y-8 bg-gray-50 px-4 text-gray-900 dark:bg-zinc-800 dark:text-gray-100">
+      {/* nav ---------------------------------------------------------- */}
+      <nav className="py-4 print:hidden">
         <div className="flex items-center justify-between text-lg font-semibold">
           <div className="flex items-center gap-4">
             <a
               href="https://github.com/AhmedElywa/prayCalendar"
               target="_blank"
-              className="cursor-pointer hover:underline"
               rel="noreferrer"
+              className="hover:underline"
             >
               {translations[lang].source}
             </a>
-            <a href="https://ahmedelywa.com" className="cursor-pointer hover:underline">
+            <a href="https://ahmedelywa.com" className="hover:underline">
               {translations[lang].creator}
             </a>
           </div>
@@ -180,7 +370,7 @@ const Index: React.FC = () => {
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value as Lang)}
-              className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
+              className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
             >
               <option value="en">English</option>
               <option value="ar">العربية</option>
@@ -188,99 +378,200 @@ const Index: React.FC = () => {
           </div>
         </div>
       </nav>
+
+      {/* title & mode toggle ----------------------------------------- */}
       <h1 className="text-2xl font-bold">{translations[lang].title}</h1>
-      <label htmlFor="address" className="flex flex-col gap-2 font-medium">
-        <div className="flex items-center gap-2">
-          {translations[lang].address}
-          <span className="text-sm font-normal text-gray-500 dark:text-gray-400">{translations[lang].addressHint}</span>
+      <fieldset className="flex gap-6">
+        <label className="flex cursor-pointer items-center gap-1">
+          <input
+            type="radio"
+            name="locmode"
+            value="address"
+            checked={inputMode === 'address'}
+            onChange={() => setInputMode('address')}
+          />
+          <span>{translations[lang].addressRadio}</span>
+        </label>
+        <label className="flex cursor-pointer items-center gap-1">
+          <input
+            type="radio"
+            name="locmode"
+            value="coords"
+            checked={inputMode === 'coords'}
+            onChange={() => setInputMode('coords')}
+          />
+          <span>{translations[lang].coordsRadio}</span>
+        </label>
+      </fieldset>
+
+      {/* location inputs --------------------------------------------- */}
+      {inputMode === 'address' && (
+        <label className="flex flex-col gap-2 font-medium">
+          <div className="flex items-center gap-2">
+            {translations[lang].address}
+            <span className="text-sm font-normal text-gray-500">{translations[lang].addressHint}</span>
+          </div>
+          <input
+            placeholder={translations[lang].addressPlaceholder}
+            className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={handleUseLocation}
+            className="w-max rounded-md border border-sky-400 px-2 py-1 text-sm hover:bg-sky-50 dark:hover:bg-gray-700"
+          >
+            {locating ? translations[lang].locating : translations[lang].useLocation}
+          </button>
+        </label>
+      )}
+
+      {inputMode === 'coords' && (
+        <div className="grid grid-cols-1 gap-2 font-medium md:grid-cols-2">
+          <label className="flex flex-col gap-2">
+            Latitude
+            <input
+              type="number"
+              value={latitude}
+              onChange={(e) => setLatitude(parseFloat(e.target.value))}
+              placeholder="30.0444"
+              className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
+            />
+          </label>
+          <label className="flex flex-col gap-2">
+            Longitude
+            <input
+              type="number"
+              value={longitude}
+              onChange={(e) => setLongitude(parseFloat(e.target.value))}
+              placeholder="31.2357"
+              className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={handleUseLocation}
+            className="col-span-full w-max rounded-md border border-sky-400 px-2 py-1 text-sm hover:bg-sky-50 dark:hover:bg-gray-700"
+          >
+            {locating ? translations[lang].locating : translations[lang].useLocation}
+          </button>
         </div>
-        <input
-          id="address"
-          name="address"
-          placeholder={translations[lang].addressPlaceholder}
-          className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
-          value={address}
-          onChange={(event) => setAddress(event.target.value)}
-        />
-      </label>
+      )}
+
+      {/* method & misc inputs ---------------------------------------- */}
       <label className="flex flex-col gap-2 font-medium">
         {translations[lang].method}
         <select
-          defaultValue={method}
-          onChange={(event) => setMethod(event.target.value)}
-          className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
+          value={method}
+          onChange={(e) => setMethod(e.target.value)}
+          className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
         >
-          {defaultMethod.map((method) => (
-            <option key={method.value} value={method.value}>
-              {method.label[lang]}
+          {defaultMethod.map((m) => (
+            <option key={m.value} value={m.value}>
+              {m.label[lang]}
             </option>
           ))}
         </select>
       </label>
+
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
         <label className="flex flex-col gap-2 font-medium">
           {translations[lang].duration}
           <input
-            id="duration"
-            name="duration"
-            className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
-            value={duration}
             type="number"
-            onChange={(event) => setDuration(+event.target.value)}
+            value={duration}
+            onChange={(e) => setDuration(+e.target.value)}
+            className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
           />
         </label>
         <label className="flex flex-col gap-2 font-medium">
           {translations[lang].months}
           <input
-            id="months"
-            name="months"
-            className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
-            value={months}
             type="number"
-            min="1"
-            max="12"
-            onChange={(event) => setMonths(+event.target.value)}
+            min={1}
+            max={12}
+            value={months}
+            onChange={(e) => setMonths(+e.target.value)}
+            className="rounded-md border border-sky-400 p-2 dark:bg-gray-800"
           />
         </label>
       </div>
 
-      <div className="space-y-2">
-        <div className="font-medium">{translations[lang].selectAlarms}</div>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {alarmOptions.map((option) => (
-            <label key={option.value} className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={alarms.includes(option.value)}
-                onChange={() => handleAlarmToggle(option.value)}
-                className="h-4 w-4"
-              />
-              <span>{option.label[lang]}</span>
-            </label>
-          ))}
+      {/* advanced accordion ----------------------------------------- */}
+      <details
+        open={showAdvanced}
+        onToggle={(e) => setShowAdvanced((e.target as HTMLDetailsElement).open)}
+        className="rounded-md border border-sky-400 bg-white p-4 dark:bg-gray-800"
+      >
+        <summary className="cursor-pointer font-semibold">{translations[lang].advanced}</summary>
+        <div className="mt-4 space-y-4">
+          <div className="space-y-2">
+            <div className="font-medium">{translations[lang].selectAlarms}</div>
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              {alarmOptionsData.map((o) => (
+                <label key={o.value} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={alarms.includes(o.value)}
+                    onChange={() => handleAlarmToggle(o.value)}
+                    className="h-4 w-4"
+                  />
+                  <span>{o.label[lang]}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="font-medium">{translations[lang].selectEvents}</div>
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              {allEvents.map((ev, i) => (
+                <label key={ev} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedEvents.includes(i)}
+                    onChange={() => handleEventToggle(i)}
+                    className="h-4 w-4"
+                  />
+                  <span>{ev}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
+      </details>
+
+      {/* live preview ------------------------------------------------- */}
+      <div className="mt-2 font-medium">
+        {loadingNext
+          ? translations[lang].loadingNext
+          : nextPrayer && (
+              <>
+                {translations[lang].nextPrayer}: {localizePrayer(nextPrayer.name)} {translations[lang].inLabel}{' '}
+                {formatDiff(nextPrayer.diffMs)}
+              </>
+            )}
       </div>
 
-      <div className="space-y-2">
-        <div className="font-medium">{translations[lang].selectEvents}</div>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {allEvents.map((event, index) => (
-            <label key={index} className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectedEvents.includes(index)}
-                onChange={() => handleEventToggle(index)}
-                className="h-4 w-4"
-              />
-              <span>{event}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
+      {/* copy link & today timings ----------------------------------- */}
       <div className="flex max-w-full flex-col">
         <div className="font-semibold">{translations[lang].copy}</div>
-        <CopyText text={link} />
+        <CopyText text={link} copiedText={translations[lang].copied} />
+
+        {todayTimings && (
+          <div className="mt-4 rounded-md border border-sky-400 p-4 dark:bg-gray-800">
+            <h3 className="mb-2 text-lg font-semibold">{translations[lang].eventsToday}</h3>
+            <ul className="grid grid-cols-2 gap-3 text-sm md:grid-cols-3">
+              {['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'].map((ev) => (
+                <li key={ev} className="flex justify-between border-b border-gray-200 px-6 py-2">
+                  <span>{localizePrayer(ev)}</span>
+                  <span className="font-mono">{todayTimings[ev]}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div className="font-bold">
         <span className="animate-ping text-5xl">👉 </span>

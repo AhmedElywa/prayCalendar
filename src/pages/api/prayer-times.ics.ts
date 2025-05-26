@@ -7,75 +7,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'GET') {
     res.status(405).send({ message: 'Only GET requests allowed' });
     return;
-  } else {
-    const { alarm, duration, events, lang = 'en', months, ...rest } = req.query;
-    const days = await getPrayerTimes(rest as any, months ? +months : 3);
-    if (!days) {
-      res.status(400).send({ message: 'Invalid address' });
-      return;
-    }
-    const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
-    const arabicNames: Record<string, string> = {
-      Fajr: 'الفجر',
-      Sunrise: 'الشروق',
-      Dhuhr: 'الظهر',
-      Asr: 'العصر',
-      Maghrib: 'المغرب',
-      Isha: 'العشاء',
-      Midnight: 'منتصف الليل',
-    };
-    const allowedEvents = events
-      ? (events as string)
+  }
+
+  // extract query parameters
+  const { alarm, duration, events, lang = 'en', months, ...queryParams } = req.query;
+
+  // fetch calendar data – now accepts address OR latitude/longitude
+  const days = await getPrayerTimes(queryParams as any, months ? +months : 3);
+  if (!days) {
+    res.status(400).send({ message: 'Invalid address or coordinates' });
+    return;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* build calendar                                                     */
+  /* ------------------------------------------------------------------ */
+
+  const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+  const arabicNames: Record<string, string> = {
+    Fajr: 'الفجر',
+    Sunrise: 'الشروق',
+    Dhuhr: 'الظهر',
+    Asr: 'العصر',
+    Maghrib: 'المغرب',
+    Isha: 'العشاء',
+    Midnight: 'منتصف الليل',
+  };
+
+  const allowedEvents = events
+    ? (events as string)
+        .split(',')
+        .map((index) => allEvents[parseInt(index, 10)])
+        .filter(Boolean)
+    : allEvents;
+
+  const calendar = ical({
+    name: lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times',
+    timezone: days[0].meta.timezone,
+  });
+
+  for (const day of days) {
+    if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment(), 'day')) continue;
+
+    for (const [name, time] of Object.entries(day.timings)) {
+      if (!allowedEvents.includes(name)) continue;
+
+      const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
+      const defaultDuration =
+        name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration !== undefined ? +duration : 25;
+
+      const event = calendar.createEvent({
+        start: startDate,
+        end: moment(startDate).add(defaultDuration, 'minute').toDate(),
+        summary: lang === 'ar' ? arabicNames[name] || name : name,
+        timezone: day.meta.timezone,
+      });
+
+      if (alarm) {
+        const alarmValues = (Array.isArray(alarm) ? alarm.join(',') : (alarm as string))
           .split(',')
-          .map((index) => allEvents[parseInt(index)])
-          .filter(Boolean)
-      : allEvents;
+          .map((a) => parseInt(a, 10))
+          .filter((a) => !isNaN(a));
 
-    const calendar = ical({
-      name: lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times',
-      timezone: days[0].meta.timezone,
-    });
-
-    for (const day of days) {
-      if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment(), 'day')) continue;
-      for (const [name, time] of Object.entries(day.timings)) {
-        if (!allowedEvents.includes(name)) continue;
-        const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
-        const defaultDuration =
-          name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration !== undefined ? +duration : 25;
-        const event = calendar.createEvent({
-          start: startDate,
-          end: moment(startDate).add(defaultDuration, 'minute').toDate(),
-          summary: lang === 'ar' ? arabicNames[name] || name : name,
-          timezone: day.meta.timezone,
-        });
-        if (alarm) {
-          const alarmValues = (Array.isArray(alarm) ? alarm.join(',') : (alarm as string))
-            .split(',')
-            .map((a) => parseInt(a, 10))
-            .filter((a) => !isNaN(a));
-          for (const a of alarmValues) {
-            if (a > 0) {
-              event.createAlarm({
-                type: ICalAlarmType.audio,
-                triggerBefore: a * 60,
-              });
-            } else if (a < 0) {
-              event.createAlarm({
-                type: ICalAlarmType.audio,
-                triggerAfter: Math.abs(a) * 60,
-              });
-            } else {
-              event.createAlarm({
-                type: ICalAlarmType.audio,
-                trigger: 0,
-              });
-            }
+        for (const a of alarmValues) {
+          if (a > 0) {
+            event.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
+          } else if (a < 0) {
+            event.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
+          } else {
+            event.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
           }
         }
       }
     }
-    res.setHeader('Content-Type', 'text/calendar');
-    res.send(calendar.toString());
   }
+
+  res.setHeader('Content-Type', 'text/calendar');
+  res.send(calendar.toString());
 }
