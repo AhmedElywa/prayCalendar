@@ -8,7 +8,7 @@ type Lang = 'en' | 'ar';
 const translations = {
   en: {
     title: 'Generate Pray Calendar Subscribe link',
-    address: 'Address (City, State, Country) eg. Cairo, Egypt',
+    address: 'Address in English (City, State, Country) eg. Cairo, Egypt (must be in English)',
     method: 'Method',
     duration: 'Duration (minutes)',
     selectAlarms: 'Select Alarms',
@@ -19,7 +19,7 @@ const translations = {
   },
   ar: {
     title: 'إنشاء رابط تقويم الصلاة',
-    address: 'العنوان (المدينة، الولاية، الدولة) مثال: القاهرة، مصر',
+    address: 'العنوان (المدينة، الولاية، الدولة) مثال: Cairo, Egypt (يجب أن يكون الإدخال باللغة الإنجليزية)',
     method: 'طريقة الحساب',
     duration: 'المدة (بالدقائق)',
     selectAlarms: 'اختر التنبيهات',
