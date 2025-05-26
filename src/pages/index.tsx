@@ -3,24 +3,70 @@ import CopyText from 'Components/CopyText';
 import defaultMethod from 'Components/defaultMethod';
 import ThemeMenu from 'Components/Theme';
 
+type Lang = 'en' | 'ar';
+
+const translations = {
+  en: {
+    title: 'Generate Pray Calendar Subscribe link',
+    address: 'Address (City, State, Country) eg. Cairo, Egypt',
+    method: 'Method',
+    duration: 'Duration (minutes)',
+    selectAlarms: 'Select Alarms',
+    selectEvents: 'Select Prayer Events',
+    copy: 'Copy this link:',
+    source: 'Source Code',
+    creator: 'Creator',
+  },
+  ar: {
+    title: 'إنشاء رابط تقويم الصلاة',
+    address: 'العنوان (المدينة، الولاية، الدولة) مثال: القاهرة، مصر',
+    method: 'طريقة الحساب',
+    duration: 'المدة (بالدقائق)',
+    selectAlarms: 'اختر التنبيهات',
+    selectEvents: 'اختر الصلوات',
+    copy: 'انسخ هذا الرابط:',
+    source: 'المصدر',
+    creator: 'المطور',
+  },
+};
+
+const eventNames = {
+  en: ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'],
+  ar: ['الفجر', 'الشروق', 'الظهر', 'العصر', 'المغرب', 'العشاء', 'منتصف الليل'],
+};
+
+const alarmOptionsData = [
+  { value: 5, label: { en: '5 minutes before', ar: 'قبل 5 دقائق' } },
+  { value: 10, label: { en: '10 minutes before', ar: 'قبل 10 دقائق' } },
+  { value: 15, label: { en: '15 minutes before', ar: 'قبل 15 دقيقة' } },
+  { value: 30, label: { en: '30 minutes before', ar: 'قبل 30 دقيقة' } },
+  { value: 0, label: { en: 'In the time', ar: 'في الموعد' } },
+  { value: -5, label: { en: '5 minutes after', ar: 'بعد 5 دقائق' } },
+  { value: -10, label: { en: '10 minutes after', ar: 'بعد 10 دقائق' } },
+];
+
 const Index: React.FC = () => {
+  const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
+  const [lang, setLang] = React.useState<Lang>(browserLang);
+
   const [address, setAddress] = React.useState('');
   const [method, setMethod] = React.useState('5');
-  const alarmOptions = [
-    { value: 5, label: '5 minutes before' },
-    { value: 10, label: '10 minutes before' },
-    { value: 15, label: '15 minutes before' },
-    { value: 30, label: '30 minutes before' },
-    { value: 0, label: 'In the time' },
-    { value: -5, label: '5 minutes after' },
-    { value: -10, label: '10 minutes after' },
-  ];
+  React.useEffect(() => {
+    const stored = localStorage.getItem('lang') as Lang | null;
+    if (stored) setLang(stored);
+  }, []);
+
+  React.useEffect(() => {
+    localStorage.setItem('lang', lang);
+  }, [lang]);
+
+  const alarmOptions = alarmOptionsData;
   const alarmOrder = alarmOptions.map((o) => o.value);
   const [alarms, setAlarms] = React.useState<number[]>([5]);
   const [duration, setDuration] = React.useState(25);
 
-  const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
-  const [selectedEvents, setSelectedEvents] = React.useState<number[]>(allEvents.map((_, index) => index));
+  const allEvents = React.useMemo(() => eventNames[lang], [lang]);
+  const [selectedEvents, setSelectedEvents] = React.useState<number[]>(eventNames.en.map((_, index) => index));
 
   const handleEventToggle = (index: number) => {
     setSelectedEvents((prev) =>
@@ -41,7 +87,7 @@ const Index: React.FC = () => {
 
   const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(
     address,
-  )}&method=${method}${alarmParam}&duration=${duration}${eventsParam}`;
+  )}&method=${method}${alarmParam}&duration=${duration}${eventsParam}&lang=${lang}`;
 
   return (
     <div className="mx-auto mb-6 flex min-h-screen max-w-screen-lg flex-col space-y-8 bg-gray-50 px-4 text-gray-900 selection:bg-gray-800 selection:text-gray-100 dark:bg-zinc-800 dark:text-gray-100 dark:selection:bg-gray-100 dark:selection:text-gray-900">
@@ -54,20 +100,28 @@ const Index: React.FC = () => {
               className="cursor-pointer hover:underline"
               rel="noreferrer"
             >
-              Source Code
+              {translations[lang].source}
             </a>
             <a href="https://ahmedelywa.com" className="cursor-pointer hover:underline">
-              Creator
+              {translations[lang].creator}
             </a>
           </div>
           <div className="flex items-center">
             <ThemeMenu />
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as Lang)}
+              className="ml-2 rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
           </div>
         </div>
       </nav>
-      <h1 className="text-2xl font-bold">Generate Pray Calendar Subscribe link</h1>
+      <h1 className="text-2xl font-bold">{translations[lang].title}</h1>
       <label htmlFor="address" className="space-2-8 flex flex-col font-medium">
-        Address (City, State, Country) eg. Cairo, Egypt
+        {translations[lang].address}
         <input
           id="address"
           name="address"
@@ -77,7 +131,7 @@ const Index: React.FC = () => {
         />
       </label>
       <label className="space-2-8 flex flex-col font-medium">
-        Method
+        {translations[lang].method}
         <select
           defaultValue={method}
           onChange={(event) => setMethod(event.target.value)}
@@ -92,7 +146,7 @@ const Index: React.FC = () => {
       </label>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
         <label className="space-2-8 flex flex-col font-medium">
-          Duration (minutes)
+          {translations[lang].duration}
           <input
             id="duration"
             name="duration"
@@ -105,7 +159,7 @@ const Index: React.FC = () => {
       </div>
 
       <div className="space-y-2">
-        <div className="font-medium">Select Alarms</div>
+        <div className="font-medium">{translations[lang].selectAlarms}</div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {alarmOptions.map((option) => (
             <label key={option.value} className="flex cursor-pointer items-center space-x-2">
@@ -115,14 +169,14 @@ const Index: React.FC = () => {
                 onChange={() => handleAlarmToggle(option.value)}
                 className="h-4 w-4"
               />
-              <span>{option.label}</span>
+              <span>{option.label[lang]}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="space-y-2">
-        <div className="font-medium">Select Prayer Events</div>
+        <div className="font-medium">{translations[lang].selectEvents}</div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {allEvents.map((event, index) => (
             <label key={index} className="flex cursor-pointer items-center space-x-2">
@@ -139,7 +193,7 @@ const Index: React.FC = () => {
       </div>
 
       <div className="flex max-w-full flex-col">
-        <div className="font-semibold">Copy this link:</div>
+        <div className="font-semibold">{translations[lang].copy}</div>
         <CopyText text={link} />
       </div>
       <div className="font-bold">

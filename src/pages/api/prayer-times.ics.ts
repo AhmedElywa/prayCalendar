@@ -8,13 +8,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).send({ message: 'Only GET requests allowed' });
     return;
   } else {
-    const { alarm, duration, events, ...rest } = req.query;
+    const { alarm, duration, events, lang = 'en', ...rest } = req.query;
     const days = await getPrayerTimes(rest as any);
     if (!days) {
       res.status(400).send({ message: 'Invalid address' });
       return;
     }
     const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+    const arabicNames: Record<string, string> = {
+      Fajr: 'الفجر',
+      Sunrise: 'الشروق',
+      Dhuhr: 'الظهر',
+      Asr: 'العصر',
+      Maghrib: 'المغرب',
+      Isha: 'العشاء',
+      Midnight: 'منتصف الليل',
+    };
     const allowedEvents = events
       ? (events as string)
           .split(',')
@@ -23,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : allEvents;
 
     const calendar = ical({
-      name: 'Prayer Times',
+      name: lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times',
       timezone: days[0].meta.timezone,
     });
 
@@ -37,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const event = calendar.createEvent({
           start: startDate,
           end: moment(startDate).add(defaultDuration, 'minute').toDate(),
-          summary: name,
+          summary: lang === 'ar' ? arabicNames[name] || name : name,
           timezone: day.meta.timezone,
         });
         if (alarm) {
