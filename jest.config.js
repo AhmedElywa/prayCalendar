@@ -16,4 +16,8 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+  // Add environment variables for Next.js App Router testing
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
 };

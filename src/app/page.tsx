@@ -1,8 +1,9 @@
+'use client';
+
 import React from 'react';
-import CopyText from 'Components/CopyText';
-import defaultMethod from 'Components/defaultMethod';
-import ThemeMenu from 'Components/Theme';
-import Head from 'next/head';
+import CopyText from '../Components/CopyText';
+import defaultMethod from '../Components/defaultMethod';
+import ThemeMenu from '../Components/Theme';
 
 type Lang = 'en' | 'ar';
 type InputMode = 'address' | 'coords';
@@ -223,7 +224,6 @@ function useTimingsPreview(deps: {
   const [loading, setLoading] = React.useState(false);
   const [nextPrayer, setNextPrayer] = React.useState<{ name: string; diffMs: number } | null>(null);
   const [todayTimings, setTodayTimings] = React.useState<Record<string, string> | null>(null);
-  const [jsonLD, setJsonLD] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if ((inputMode === 'address' && !address) || (inputMode === 'coords' && (latitude === '' || longitude === ''))) {
@@ -242,33 +242,6 @@ function useTimingsPreview(deps: {
         if (j.code !== 200) throw new Error();
         const timings: Record<string, string> = j.data.timings;
         setTodayTimings(timings);
-
-        const ld = {
-          '@context': 'https://schema.org',
-          '@type': 'Event',
-          name: lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times',
-          eventSchedule: Object.entries(timings)
-            .slice(0, 6) // Fajr → Isha
-            .map(([name, t]) => {
-              const [h, m] = t.split(':');
-              const start = new Date();
-              start.setHours(+h, +m, 0, 0);
-              const end = new Date(start);
-              end.setMinutes(end.getMinutes() + 25);
-              return {
-                '@type': 'Schedule',
-                name,
-                startDate: start.toISOString(),
-                endDate: end.toISOString(),
-                eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-                location: {
-                  '@type': 'Place',
-                  name: inputMode === 'address' ? address : `${latitude}, ${longitude}`,
-                },
-              };
-            }),
-        };
-        setJsonLD(JSON.stringify(ld));
 
         const order = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
         const now = new Date();
@@ -293,10 +266,10 @@ function useTimingsPreview(deps: {
     fetchToday();
   }, [inputMode, address, latitude, longitude, method, lang]);
 
-  return { loading, nextPrayer, todayTimings, jsonLD };
+  return { loading, nextPrayer, todayTimings };
 }
 
-const Index: React.FC = () => {
+export default function HomePage() {
   /* ---------- language ---------- */
   const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
   const { lang, setLang } = useLanguage(browserLang);
@@ -364,7 +337,6 @@ const Index: React.FC = () => {
     loading: loadingNext,
     nextPrayer,
     todayTimings,
-    jsonLD,
   } = useTimingsPreview({
     inputMode,
     address,
@@ -665,13 +637,6 @@ const Index: React.FC = () => {
           ))}
         </ul>
       </div>
-      {jsonLD && (
-        <Head>
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLD }} />
-        </Head>
-      )}
     </div>
   );
-};
-
-export default Index;
+}

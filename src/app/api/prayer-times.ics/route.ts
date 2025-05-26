@@ -1,22 +1,30 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { getPrayerTimes } from 'prayerTimes';
+import { NextRequest, NextResponse } from 'next/server';
+import { getPrayerTimes } from '../../../prayerTimes';
 import ical, { ICalAlarmType } from 'ical-generator';
 import moment from 'moment/moment';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    res.status(405).send({ message: 'Only GET requests allowed' });
-    return;
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+
+  // Extract query parameters
+  const alarm = searchParams.get('alarm');
+  const duration = searchParams.get('duration');
+  const events = searchParams.get('events');
+  const lang = searchParams.get('lang') || 'en';
+  const months = searchParams.get('months');
+
+  // Build query params object for getPrayerTimes
+  const queryParams: any = {};
+  for (const [key, value] of searchParams.entries()) {
+    if (!['alarm', 'duration', 'events', 'lang', 'months'].includes(key)) {
+      queryParams[key] = value;
+    }
   }
 
-  // extract query parameters
-  const { alarm, duration, events, lang = 'en', months, ...queryParams } = req.query;
-
-  // fetch calendar data – now accepts address OR latitude/longitude
-  const days = await getPrayerTimes(queryParams as any, months ? +months : 3);
+  // Fetch calendar data – now accepts address OR latitude/longitude
+  const days = await getPrayerTimes(queryParams, months ? +months : 3);
   if (!days) {
-    res.status(400).send({ message: 'Invalid address or coordinates' });
-    return;
+    return NextResponse.json({ message: 'Invalid address or coordinates' }, { status: 400 });
   }
 
   /* ------------------------------------------------------------------ */
@@ -35,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const allowedEvents = events
-    ? (events as string)
+    ? events
         .split(',')
         .map((index) => allEvents[parseInt(index, 10)])
         .filter(Boolean)
@@ -53,8 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!allowedEvents.includes(name)) continue;
 
       const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
-      const defaultDuration =
-        name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration !== undefined ? +duration : 25;
+      const defaultDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
 
       const event = calendar.createEvent({
         start: startDate,
@@ -64,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       if (alarm) {
-        const alarmValues = (Array.isArray(alarm) ? alarm.join(',') : (alarm as string))
+        const alarmValues = alarm
           .split(',')
           .map((a) => parseInt(a, 10))
           .filter((a) => !isNaN(a));
@@ -82,6 +89,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  res.setHeader('Content-Type', 'text/calendar');
-  res.send(calendar.toString());
+  return new NextResponse(calendar.toString(), {
+    headers: {
+      'Content-Type': 'text/calendar',
+    },
+  });
 }
