@@ -4,15 +4,15 @@ import { translations } from '../constants/translations';
 import type { Lang } from '../hooks/useLanguage';
 import defaultMethod from './defaultMethod';
 
-interface MethodSelectProps {
+export interface MethodSelectProps {
   lang: Lang;
   method: string;
   setMethod: (method: string) => void;
 }
 
-export default function MethodSelect({ lang, method, setMethod }: MethodSelectProps) {
+export function MethodSelectFields({ lang, method, setMethod }: MethodSelectProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+    <>
       <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <AdjustmentsHorizontalIcon className="h-5 w-5" />
         {translations[lang].method}
@@ -45,6 +45,14 @@ export default function MethodSelect({ lang, method, setMethod }: MethodSelectPr
           </svg>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function MethodSelect(props: MethodSelectProps) {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+      <MethodSelectFields {...props} />
     </div>
   );
 }

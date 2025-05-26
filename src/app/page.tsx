@@ -2,25 +2,20 @@
 
 import React from 'react';
 import CopyText from '../Components/CopyText';
-import Navigation from '../Components/Navigation';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
 import AdvancedOptions from '../Components/AdvancedOptions';
 import PrayerPreview from '../Components/PrayerPreview';
 import InstructionsSection from '../Components/InstructionsSection';
-import Footer from '../Components/Footer';
-import { useLanguage, useLocationFields, useTimingsPreview } from '../hooks';
+import PageLayout from '../Components/PageLayout';
+import { useAppContext } from '../contexts/AppContext';
+import { useTimingsPreview } from '../hooks';
 import { translations } from '../constants/translations';
 import { eventNames, alarmOptionsData } from '../constants/prayerData';
 import { LinkIcon } from '@heroicons/react/24/outline';
 
 export default function HomePage() {
-  /* ---------- language ---------- */
-  const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
-  const { lang, setLang } = useLanguage(browserLang);
-
-  /* ---------- location fields ---------- */
-  const locationFields = useLocationFields();
+  const { lang, setLang, locationFields } = useAppContext();
 
   /* ---------- other form state ---------- */
   const [method, setMethod] = React.useState('5');
@@ -74,10 +69,7 @@ export default function HomePage() {
   /*  Render                                                            */
   /* ================================================================== */
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-zinc-800">
-      {/* Navigation */}
-      <Navigation lang={lang} setLang={setLang} />
-
+    <PageLayout>
       <div className="mx-auto max-w-screen-lg px-4 py-8">
         {/* Page Header */}
         <div className="mb-8 text-center">
@@ -136,7 +128,6 @@ export default function HomePage() {
           <InstructionsSection lang={lang} />
         </div>
       </div>
-      <Footer lang={lang} />
-    </main>
+    </PageLayout>
   );
 }
