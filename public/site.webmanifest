@@ -1,6 +1,6 @@
 {
-    "name": "Pray Time",
-    "short_name": "Pray Time",
+    "name": "Prayer View App",
+    "short_name": "Prayer View",
     "icons": [
        {
           "src": "/android-chrome-192x192.png",

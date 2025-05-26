@@ -41,6 +41,9 @@ export default function PrayApp() {
   return (
     <PageLayout>
       <div className="mx-auto max-w-screen-sm space-y-6 px-4 py-8">
+        <h1 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
+          {translations[lang].pwaPageTitle || 'Prayer View App'}
+        </h1>
         {!collapsed && (
           <div className="space-y-4">
             <LocationInputs />
@@ -50,7 +53,7 @@ export default function PrayApp() {
               onClick={handleSave}
               className="rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white"
             >
-              {translations[lang].saveLocation || 'Save location'}
+              {translations[lang].saveSettings || 'Save settings'}
             </button>
           </div>
         )}
@@ -61,11 +64,10 @@ export default function PrayApp() {
               onClick={() => setCollapsed(false)}
               className="text-sm text-sky-600 dark:text-sky-400"
             >
-              {translations[lang].changeLocation || 'Change location'}
+              {translations[lang].changeSettings || 'Change settings'}
             </button>
           </div>
         )}
-        {collapsed && <MethodSelect method={method} setMethod={setMethod} />}
         <PrayerPreview loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
       </div>
     </PageLayout>
