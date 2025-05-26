@@ -2,6 +2,7 @@
 import React from 'react';
 import Navigation from './Navigation';
 import Footer from './Footer';
+import InstallPrompt from './InstallPrompt';
 
 export default function PageLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,6 +10,7 @@ export default function PageLayout({ children }: { children: React.ReactNode }) 
       <Navigation />
       {children}
       <Footer />
+      <InstallPrompt />
     </main>
   );
 }
