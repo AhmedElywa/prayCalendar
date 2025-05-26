@@ -1,0 +1,63 @@
+import React from 'react';
+import type { InputMode } from './useLocationFields';
+import type { Lang } from './useLanguage';
+
+interface UseTimingsPreviewDeps {
+  inputMode: InputMode;
+  address: string;
+  latitude: number | '';
+  longitude: number | '';
+  method: string;
+  lang: Lang;
+}
+
+/** fetch next‑prayer & today's timetable */
+export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
+  const { inputMode, address, latitude, longitude, method, lang } = deps;
+  const [loading, setLoading] = React.useState(false);
+  const [nextPrayer, setNextPrayer] = React.useState<{ name: string; diffMs: number } | null>(null);
+  const [todayTimings, setTodayTimings] = React.useState<Record<string, string> | null>(null);
+
+  React.useEffect(() => {
+    if ((inputMode === 'address' && !address) || (inputMode === 'coords' && (latitude === '' || longitude === ''))) {
+      setNextPrayer(null);
+      setTodayTimings(null);
+      return;
+    }
+    const fetchToday = async () => {
+      setLoading(true);
+      try {
+        const url =
+          inputMode === 'address'
+            ? `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(address)}&method=${method}`
+            : `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`;
+        const j = await (await fetch(url)).json();
+        if (j.code !== 200) throw new Error();
+        const timings: Record<string, string> = j.data.timings;
+        setTodayTimings(timings);
+
+        const order = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+        const now = new Date();
+        let upcoming: { name: string; diffMs: number } | null = null;
+        for (const ev of order) {
+          const [h, m] = timings[ev].split(':').map(Number);
+          const d = new Date(now);
+          d.setHours(h, m, 0, 0);
+          if (d > now) {
+            upcoming = { name: ev, diffMs: d.getTime() - now.getTime() };
+            break;
+          }
+        }
+        setNextPrayer(upcoming);
+      } catch {
+        setNextPrayer(null);
+        setTodayTimings(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchToday();
+  }, [inputMode, address, latitude, longitude, method, lang]);
+
+  return { loading, nextPrayer, todayTimings };
+}
