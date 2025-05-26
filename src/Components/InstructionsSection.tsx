@@ -1,6 +1,7 @@
 import React from 'react';
 import { translations } from '../constants/translations';
 import type { Lang } from '../hooks/useLanguage';
+import { InformationCircleIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 interface InstructionsSectionProps {
   lang: Lang;
@@ -8,75 +9,94 @@ interface InstructionsSectionProps {
 
 export default function InstructionsSection({ lang }: InstructionsSectionProps) {
   return (
-    <>
-      <div className="font-bold">
-        <span className="animate-ping text-5xl">👉 </span>
-        {translations[lang].editHint}{' '}
-        <a
-          className="text-blue-300 hover:underline"
-          href="https://aladhan.com/prayer-times-api#tag/Monthly-Annual-Prayer-Times-Calendar/paths/~1v1~1calendarByAddress~1%7Byear%7D~1%7Bmonth%7D/get"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {translations[lang].docsAnchor}
-        </a>
+    <div className="space-y-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+      {/* Hint about editing */}
+      <div className="rounded-lg bg-sky-50 p-4 dark:bg-sky-900/20">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <InformationCircleIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" aria-hidden="true" />
+          </div>
+          <div className="ms-3">
+            <p className="text-sm text-sky-700 dark:text-sky-300">
+              {translations[lang].editHint}{' '}
+              <a
+                className="font-medium text-sky-700 underline hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
+                href="https://aladhan.com/prayer-times-api#tag/Monthly-Annual-Prayer-Times-Calendar/paths/~1v1~1calendarByAddress~1%7Byear%7D~1%7Bmonth%7D/get"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {translations[lang].docsAnchor}
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Google Calendar Instructions */}
-      <h2 className="font-bold">
-        {translations[lang].googleTitle}{' '}
-        <a
-          className="text-blue-300 hover:underline"
-          href="https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {translations[lang].docsLinkText}
-        </a>
-      </h2>
-      <ul className="my-4 list-decimal pl-6 text-lg leading-7">
-        {translations[lang].googleSteps.map((step, idx) => (
-          <li key={idx}>{step}</li>
-        ))}
-      </ul>
+      {/* Instructions for different calendar services */}
+      <div className="space-y-6">
+        {/* Google Calendar */}
+        <div>
+          <h2 className="flex items-center text-lg font-medium text-gray-900 dark:text-white">
+            <DocumentTextIcon className="me-2 h-5 w-5 text-sky-600 dark:text-sky-400" />
+            {translations[lang].googleTitle}{' '}
+            <a
+              className="ms-2 text-sm font-normal text-sky-600 hover:underline dark:text-sky-400"
+              href="https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {translations[lang].docsLinkText}
+            </a>
+          </h2>
+          <ol className="mt-4 list-decimal space-y-2 ps-5 text-sm leading-6 text-gray-700 dark:text-gray-300">
+            {translations[lang].googleSteps.map((step, idx) => (
+              <li key={idx}>{step}</li>
+            ))}
+          </ol>
+        </div>
 
-      {/* Outlook Instructions */}
-      <h2 className="font-bold">
-        {translations[lang].outlookTitle}{' '}
-        <a
-          className="text-blue-300 hover:underline"
-          href="https://support.microsoft.com/en-us/office/import-or-subscribe-to-a-calendar-in-outlook-com-or-outlook-on-the-web-cff1429c-5af6-41ec-a5b4-74f2c278e98c"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {translations[lang].docsLinkText}
-        </a>
-      </h2>
-      <ul className="my-4 list-decimal pl-6 text-lg leading-7">
-        {translations[lang].outlookSteps.map((step, idx) => (
-          <li key={idx}>{step}</li>
-        ))}
-      </ul>
+        {/* Outlook Instructions */}
+        <div>
+          <h2 className="flex items-center text-lg font-medium text-gray-900 dark:text-white">
+            <DocumentTextIcon className="me-2 h-5 w-5 text-sky-600 dark:text-sky-400" />
+            {translations[lang].outlookTitle}{' '}
+            <a
+              className="ms-2 text-sm font-normal text-sky-600 hover:underline dark:text-sky-400"
+              href="https://support.microsoft.com/en-us/office/import-or-subscribe-to-a-calendar-in-outlook-com-or-outlook-on-the-web-cff1429c-5af6-41ec-a5b4-74f2c278e98c"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {translations[lang].docsLinkText}
+            </a>
+          </h2>
+          <ol className="mt-4 list-decimal space-y-2 ps-5 text-sm leading-6 text-gray-700 dark:text-gray-300">
+            {translations[lang].outlookSteps.map((step, idx) => (
+              <li key={idx}>{step}</li>
+            ))}
+          </ol>
+        </div>
 
-      {/* Apple Calendar Instructions */}
-      <div>
-        <h2 className="font-bold">
-          {translations[lang].appleTitle}{' '}
-          <a
-            className="text-blue-300 hover:underline"
-            href="https://support.apple.com/en-eg/102301"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {translations[lang].docsLinkText}
-          </a>
-        </h2>
-        <ul className="my-4 list-decimal pl-6 text-lg leading-7">
-          {translations[lang].appleSteps.map((step, idx) => (
-            <li key={idx}>{step}</li>
-          ))}
-        </ul>
+        {/* Apple Calendar Instructions */}
+        <div>
+          <h2 className="flex items-center text-lg font-medium text-gray-900 dark:text-white">
+            <DocumentTextIcon className="me-2 h-5 w-5 text-sky-600 dark:text-sky-400" />
+            {translations[lang].appleTitle}{' '}
+            <a
+              className="ms-2 text-sm font-normal text-sky-600 hover:underline dark:text-sky-400"
+              href="https://support.apple.com/en-eg/102301"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {translations[lang].docsLinkText}
+            </a>
+          </h2>
+          <ol className="mt-4 list-decimal space-y-2 ps-5 text-sm leading-6 text-gray-700 dark:text-gray-300">
+            {translations[lang].appleSteps.map((step, idx) => (
+              <li key={idx}>{step}</li>
+            ))}
+          </ol>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

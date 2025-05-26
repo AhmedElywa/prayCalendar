@@ -11,6 +11,7 @@ import InstructionsSection from '../Components/InstructionsSection';
 import { useLanguage, useLocationFields, useTimingsPreview } from '../hooks';
 import { translations } from '../constants/translations';
 import { eventNames, alarmOptionsData } from '../constants/prayerData';
+import { LinkIcon } from '@heroicons/react/24/outline';
 
 export default function HomePage() {
   /* ---------- language ---------- */
@@ -72,50 +73,68 @@ export default function HomePage() {
   /*  Render                                                            */
   /* ================================================================== */
   return (
-    <div className="mx-auto mb-6 flex min-h-screen max-w-screen-lg flex-col space-y-8 bg-gray-50 px-4 text-gray-900 dark:bg-zinc-800 dark:text-gray-100">
+    <main className="min-h-screen bg-gray-50 dark:bg-zinc-800">
       {/* Navigation */}
       <Navigation lang={lang} setLang={setLang} />
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold">{translations[lang].title}</h1>
+      <div className="mx-auto max-w-screen-lg px-4 py-8">
+        {/* Page Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{translations[lang].title}</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">
+            Generate accurate prayer times and subscribe to your calendar
+          </p>
+        </div>
 
-      {/* Location Inputs */}
-      <LocationInputs lang={lang} {...locationFields} />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            {/* Location Inputs */}
+            <LocationInputs lang={lang} {...locationFields} />
 
-      {/* Method and Settings */}
-      <MethodAndSettings
-        lang={lang}
-        method={method}
-        setMethod={setMethod}
-        duration={duration}
-        setDuration={setDuration}
-        months={months}
-        setMonths={setMonths}
-      />
+            {/* Method and Settings */}
+            <MethodAndSettings
+              lang={lang}
+              method={method}
+              setMethod={setMethod}
+              duration={duration}
+              setDuration={setDuration}
+              months={months}
+              setMonths={setMonths}
+            />
 
-      {/* Advanced Options */}
-      <AdvancedOptions
-        lang={lang}
-        showAdvanced={showAdvanced}
-        setShowAdvanced={setShowAdvanced}
-        alarms={alarms}
-        handleAlarmToggle={handleAlarmToggle}
-        allEvents={allEvents}
-        selectedEvents={selectedEvents}
-        handleEventToggle={handleEventToggle}
-      />
+            {/* Advanced Options */}
+            <AdvancedOptions
+              lang={lang}
+              showAdvanced={showAdvanced}
+              setShowAdvanced={setShowAdvanced}
+              alarms={alarms}
+              handleAlarmToggle={handleAlarmToggle}
+              allEvents={allEvents}
+              selectedEvents={selectedEvents}
+              handleEventToggle={handleEventToggle}
+            />
 
-      {/* Prayer Preview */}
-      <PrayerPreview lang={lang} loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
+            {/* Copy Link */}
+            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+              <div className="mb-4 flex items-center gap-2">
+                <LinkIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">{translations[lang].copy}</h3>
+              </div>
+              <CopyText text={link} copiedText={translations[lang].copied} />
+            </div>
+          </div>
 
-      {/* Copy Link */}
-      <div className="flex max-w-full flex-col">
-        <div className="font-semibold">{translations[lang].copy}</div>
-        <CopyText text={link} copiedText={translations[lang].copied} />
+          <div className="space-y-6">
+            {/* Prayer Preview */}
+            <PrayerPreview lang={lang} loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <div className="mt-10">
+          <InstructionsSection lang={lang} />
+        </div>
       </div>
-
-      {/* Instructions */}
-      <InstructionsSection lang={lang} />
-    </div>
+    </main>
   );
 }
