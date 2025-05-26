@@ -3,7 +3,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   moduleNameMapper: {
-    '^Components/(.*)$': '<rootDir>/src/components/$1',
+    '^Components/(.*)$': '<rootDir>/src/Components/$1',
     '^prayerTimes$': '<rootDir>/src/prayerTimes.ts',
   },
   transform: {

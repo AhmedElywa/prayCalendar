@@ -37,6 +37,7 @@ describe('Index component', () => {
 
     const copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('Cairo%2C%20Egypt');
+    expect(copyText.textContent).toContain('lang=en');
   });
 
   it('updates method when select changes', () => {
@@ -46,6 +47,7 @@ describe('Index component', () => {
 
     const copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('method=0');
+    expect(copyText.textContent).toContain('lang=en');
   });
 
   it('updates alarm when checkboxes change', () => {
@@ -55,10 +57,12 @@ describe('Index component', () => {
 
     let copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('alarm=5,10');
+    expect(copyText.textContent).toContain('lang=en');
 
     fireEvent.click(screen.getByLabelText('5 minutes before'));
     copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('alarm=10');
+    expect(copyText.textContent).toContain('lang=en');
   });
 
   it('toggles prayer events when checkboxes are clicked', () => {
@@ -75,13 +79,16 @@ describe('Index component', () => {
     fireEvent.click(checkboxes[0]);
     let copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('events=1,2,3,4,5,6');
+    expect(copyText.textContent).toContain('lang=en');
 
     fireEvent.click(checkboxes[1]);
     copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('events=2,3,4,5,6');
+    expect(copyText.textContent).toContain('lang=en');
 
     fireEvent.click(checkboxes[0]);
     copyText = screen.getByTestId('copy-text');
     expect(copyText.textContent).toContain('events=0,2,3,4,5,6');
+    expect(copyText.textContent).toContain('lang=en');
   });
 });

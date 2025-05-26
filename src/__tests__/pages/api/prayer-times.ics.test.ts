@@ -23,6 +23,7 @@ jest.mock('ical-generator', () => {
     ICalAlarmType: {
       audio: 'audio',
     },
+    createEventMock,
   };
 });
 
@@ -37,6 +38,7 @@ jest.mock('moment/moment', () => {
   return { __esModule: true, default: momentMock, addMock };
 });
 import { addMock } from 'moment/moment';
+import { createEventMock } from 'ical-generator';
 
 describe('Prayer Times API', () => {
   let req: Partial<NextApiRequest>;
@@ -124,5 +126,13 @@ describe('Prayer Times API', () => {
 
     // We can't easily test the filtering logic without inspecting the internal implementation
     // but we can confirm it processes the request successfully
+  });
+
+  it('uses arabic names when lang parameter is ar', async () => {
+    if (req.query) {
+      req.query.lang = 'ar';
+    }
+    await handler(req as NextApiRequest, res as NextApiResponse);
+    expect(createEventMock).toHaveBeenCalledWith(expect.objectContaining({ summary: 'الفجر' }));
   });
 });
