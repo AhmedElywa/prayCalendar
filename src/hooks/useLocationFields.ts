@@ -31,9 +31,12 @@ export function useLocationFields() {
           setLongitude(lon);
         } else {
           try {
-            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
-              headers: { 'User-Agent': 'pray-calendar-app' },
-            });
+            const r = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=en`,
+              {
+                headers: { 'User-Agent': 'pray-calendar-app' },
+              },
+            );
             const j = await r.json();
             const a = j.address || {};
             // Prefer city → town → village; then state & country
