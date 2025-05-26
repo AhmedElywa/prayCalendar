@@ -7,7 +7,7 @@ class MyDocument extends Document {
   }
   render() {
     return (
-      <Html>
+      <Html lang={this.props.locale ?? 'en'} dir={this.props.locale === 'ar' ? 'rtl' : 'ltr'}>
         <Head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

@@ -8,8 +8,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).send({ message: 'Only GET requests allowed' });
     return;
   } else {
-    const { alarm, duration, events, lang = 'en', ...rest } = req.query;
-    const days = await getPrayerTimes(rest as any);
+    const { alarm, duration, events, lang = 'en', months, ...rest } = req.query;
+    const days = await getPrayerTimes(rest as any, months ? +months : 3);
     if (!days) {
       res.status(400).send({ message: 'Invalid address' });
       return;

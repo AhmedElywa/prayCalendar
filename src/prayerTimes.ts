@@ -3,143 +3,146 @@ import moment from 'moment/moment';
 const API_URL = `https://api.aladhan.com/v1/calendarByAddress/`;
 
 type Day = {
-	timings: {
-		Fajr: string;
-		Sunrise: string;
-		Dhuhr: string;
-		Asr: string;
-		Sunset: string;
-		Maghrib: string;
-		Isha: string;
-		Imsak: string;
-		Midnight: string;
-		Firstthird: string;
-		Lastthird: string;
-	};
-	date: {
-		readable: string;
-		timestamp: string;
-		gregorian: {
-			date: string;
-			format: string;
-			day: string;
-			weekday: { en: string };
-			month: { number: number; en: string };
-			year: string;
-			designation: { abbreviated: string; expanded: string };
-		};
-		hijri: {
-			date: string;
-			format: string;
-			day: string;
-			weekday: { en: string; ar: string };
-			month: { number: number; en: string; ar: string };
-			year: string;
-			designation: { abbreviated: string; expanded: string };
-			holidays: string[];
-		};
-	};
-	meta: {
-		latitude: number;
-		longitude: number;
-		timezone: string;
-		method: {
-			id: number;
-			name: string;
-			params: { Fajr: number; Isha: number };
-			location: { latitude: number; longitude: number };
-		};
-		latitudeAdjustmentMethod: string;
-		midnightMode: string;
-		school: string;
-		offset: {
-			Imsak: number;
-			Fajr: number;
-			Sunrise: number;
-			Dhuhr: number;
-			Asr: number;
-			Maghrib: number;
-			Sunset: number;
-			Isha: number;
-			Midnight: number;
-		};
-	};
+  timings: {
+    Fajr: string;
+    Sunrise: string;
+    Dhuhr: string;
+    Asr: string;
+    Sunset: string;
+    Maghrib: string;
+    Isha: string;
+    Imsak: string;
+    Midnight: string;
+    Firstthird: string;
+    Lastthird: string;
+  };
+  date: {
+    readable: string;
+    timestamp: string;
+    gregorian: {
+      date: string;
+      format: string;
+      day: string;
+      weekday: { en: string };
+      month: { number: number; en: string };
+      year: string;
+      designation: { abbreviated: string; expanded: string };
+    };
+    hijri: {
+      date: string;
+      format: string;
+      day: string;
+      weekday: { en: string; ar: string };
+      month: { number: number; en: string; ar: string };
+      year: string;
+      designation: { abbreviated: string; expanded: string };
+      holidays: string[];
+    };
+  };
+  meta: {
+    latitude: number;
+    longitude: number;
+    timezone: string;
+    method: {
+      id: number;
+      name: string;
+      params: { Fajr: number; Isha: number };
+      location: { latitude: number; longitude: number };
+    };
+    latitudeAdjustmentMethod: string;
+    midnightMode: string;
+    school: string;
+    offset: {
+      Imsak: number;
+      Fajr: number;
+      Sunrise: number;
+      Dhuhr: number;
+      Asr: number;
+      Maghrib: number;
+      Sunset: number;
+      Isha: number;
+      Midnight: number;
+    };
+  };
 };
 
 // Helper functions to validate and convert string to expected enum values
 interface Params {
-	address: string;
-	method: 0 | 1 | 2 | 3 | 4 | 5 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23;
-	x7xapikey: string;
-	annual: boolean;
-	shafaq: 'general' | 'ahmer' | 'abyad';
-	tune: string;
-	school: 0 | 1;
-	midnightMode: 0 | 1;
-	latitudeAdjustmentMethod: 1 | 2 | 3;
-	adjustment: number;
-	iso8601: boolean;
+  address: string;
+  method: 0 | 1 | 2 | 3 | 4 | 5 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23;
+  x7xapikey: string;
+  annual: boolean;
+  shafaq: 'general' | 'ahmer' | 'abyad';
+  tune: string;
+  school: 0 | 1;
+  midnightMode: 0 | 1;
+  latitudeAdjustmentMethod: 1 | 2 | 3;
+  adjustment: number;
+  iso8601: boolean;
 }
 
 // Generalized function to check if a value is an enum value between two numbers
 function isEnumValue<T extends number>(value: any, min: T, max: T): value is T {
-	const num = Number(value);
-	return !isNaN(num) && num >= min && num <= max;
+  const num = Number(value);
+  return !isNaN(num) && num >= min && num <= max;
 }
 
 // Specific type guards for the Params interface
 function toMethod(value: any): Params['method'] {
-	return isEnumValue(value, 0, 23) ? Number(value) as Params['method'] : 0; // Adjust default if needed
+  return isEnumValue(value, 0, 23) ? (Number(value) as Params['method']) : 0; // Adjust default if needed
 }
 
 function toSchool(value: any): Params['school'] {
-	return isEnumValue(value, 0, 1) ? Number(value) as Params['school'] : 0; // Adjust default if needed
+  return isEnumValue(value, 0, 1) ? (Number(value) as Params['school']) : 0; // Adjust default if needed
 }
 
 function toMidnightMode(value: any): Params['midnightMode'] {
-	return isEnumValue(value, 0, 1) ? Number(value) as Params['midnightMode'] : 0; // Adjust default if needed
+  return isEnumValue(value, 0, 1) ? (Number(value) as Params['midnightMode']) : 0; // Adjust default if needed
 }
 
 function toLatitudeAdjustmentMethod(value: any): Params['latitudeAdjustmentMethod'] {
-	return isEnumValue(value, 1, 3) ? Number(value) as Params['latitudeAdjustmentMethod'] : 1; // Adjust default if needed
+  return isEnumValue(value, 1, 3) ? (Number(value) as Params['latitudeAdjustmentMethod']) : 1; // Adjust default if needed
 }
 
 type Response = {
-	code: number;
-	status: string;
-	data: Day[];
-}
+  code: number;
+  status: string;
+  data: Day[];
+};
 
-export async function getPrayerTimes(params: Record<keyof Params,  string>): Promise<Response['data'] | undefined> {
-	// the params object coming from url query string will be passed to this function as an argument
-	// we should convert the types from string to the correct types
-	const convertedParams: Params = {
-		...params,
-		method: toMethod(params.method),
-		annual: params.annual === 'true',
-		shafaq: params.shafaq as Params['shafaq'] || 'general',
-		school: toSchool(params.school),
-		midnightMode: toMidnightMode(params.midnightMode),
-		latitudeAdjustmentMethod: toLatitudeAdjustmentMethod(params.latitudeAdjustmentMethod),
-		adjustment: params.adjustment ? Number(params.adjustment) : 0,
-		iso8601: params.iso8601 === 'true',
-	};
-	try {
-		const data: Day[] = [];
-		for (let i = 0; i < 3; i++) {
-			const date = moment().add(i, 'month')
-			const year = date.format('YYYY');
-			const month = date.format('MM');
-			const URL = `${API_URL}${year}/${month}`;
-			const response = await axios.get<Response>(URL, {
-				params: convertedParams,
-			});
-			data.push(...response.data.data);
-		}
-		return data;
-	} catch (error) {
-		console.error(error);
-	}
+export async function getPrayerTimes(
+  params: Record<keyof Params, string>,
+  monthsCount: number = 3,
+): Promise<Response['data'] | undefined> {
+  // the params object coming from url query string will be passed to this function as an argument
+  // we should convert the types from string to the correct types
+  const convertedParams: Params = {
+    ...params,
+    method: toMethod(params.method),
+    annual: params.annual === 'true',
+    shafaq: (params.shafaq as Params['shafaq']) || 'general',
+    school: toSchool(params.school),
+    midnightMode: toMidnightMode(params.midnightMode),
+    latitudeAdjustmentMethod: toLatitudeAdjustmentMethod(params.latitudeAdjustmentMethod),
+    adjustment: params.adjustment ? Number(params.adjustment) : 0,
+    iso8601: params.iso8601 === 'true',
+  };
+  try {
+    const data: Day[] = [];
+    for (let i = 0; i < monthsCount; i++) {
+      const date = moment().add(i, 'month');
+      const year = date.format('YYYY');
+      const month = date.format('MM');
+      const URL = `${API_URL}${year}/${month}`;
+      const response = await axios.get<Response>(URL, {
+        params: convertedParams,
+      });
+      data.push(...response.data.data);
+    }
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /*
