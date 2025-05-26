@@ -6,7 +6,17 @@ import ThemeMenu from 'Components/Theme';
 const Index: React.FC = () => {
   const [address, setAddress] = React.useState('');
   const [method, setMethod] = React.useState('5');
-  const [alarm, setAlarm] = React.useState('5');
+  const alarmOptions = [
+    { value: 5, label: '5 minutes before' },
+    { value: 10, label: '10 minutes before' },
+    { value: 15, label: '15 minutes before' },
+    { value: 30, label: '30 minutes before' },
+    { value: 0, label: 'In the time' },
+    { value: -5, label: '5 minutes after' },
+    { value: -10, label: '10 minutes after' },
+  ];
+  const alarmOrder = alarmOptions.map((o) => o.value);
+  const [alarms, setAlarms] = React.useState<number[]>([5]);
   const [duration, setDuration] = React.useState(25);
 
   const allEvents = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
@@ -18,11 +28,20 @@ const Index: React.FC = () => {
     );
   };
 
+  const handleAlarmToggle = (value: number) => {
+    setAlarms((prev) => {
+      const exists = prev.includes(value);
+      const updated = exists ? prev.filter((a) => a !== value) : [...prev, value];
+      return updated.sort((a, b) => alarmOrder.indexOf(a) - alarmOrder.indexOf(b));
+    });
+  };
+
   const eventsParam = selectedEvents.length === allEvents.length ? '' : `&events=${selectedEvents.join(',')}`;
+  const alarmParam = alarms.length ? `&alarm=${alarms.join(',')}` : '';
 
   const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?address=${encodeURIComponent(
     address,
-  )}&method=${method}&alarm=${alarm}&duration=${duration}${eventsParam}`;
+  )}&method=${method}${alarmParam}&duration=${duration}${eventsParam}`;
 
   return (
     <div className="mx-auto mb-6 flex min-h-screen max-w-screen-lg flex-col space-y-8 bg-gray-50 px-4 text-gray-900 selection:bg-gray-800 selection:text-gray-100 dark:bg-zinc-800 dark:text-gray-100 dark:selection:bg-gray-100 dark:selection:text-gray-900">
@@ -73,20 +92,6 @@ const Index: React.FC = () => {
       </label>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
         <label className="space-2-8 flex flex-col font-medium">
-          Alarm (minutes before)
-          <select
-            defaultValue={alarm}
-            onChange={(event) => setAlarm(event.target.value)}
-            className="rounded-md border border-sky-400 p-2 dark:bg-gray-800 dark:text-gray-100"
-          >
-            <option value="0">No alarm</option>
-            <option value="5">5 minutes</option>
-            <option value="10">10 minutes</option>
-            <option value="15">15 minutes</option>
-            <option value="30">30 minutes</option>
-          </select>
-        </label>
-        <label className="space-2-8 flex flex-col font-medium">
           Duration (minutes)
           <input
             id="duration"
@@ -97,6 +102,23 @@ const Index: React.FC = () => {
             onChange={(event) => setDuration(+event.target.value)}
           />
         </label>
+      </div>
+
+      <div className="space-y-2">
+        <div className="font-medium">Select Alarms</div>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {alarmOptions.map((option) => (
+            <label key={option.value} className="flex cursor-pointer items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={alarms.includes(option.value)}
+                onChange={() => handleAlarmToggle(option.value)}
+                className="h-4 w-4"
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-2">
