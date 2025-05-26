@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pray-calendar-v1';
+const CACHE_NAME = 'pray-calendar-v2';
 const STATIC_ASSETS = ['/', '/pwa', '/favicon.ico'];
 
 self.addEventListener('install', (event) => {
