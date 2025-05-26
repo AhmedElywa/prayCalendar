@@ -7,17 +7,30 @@ import { BellAlertIcon, ClockIcon } from '@heroicons/react/24/outline';
 interface PrayerPreviewProps {
   lang: Lang;
   loadingNext: boolean;
-  nextPrayer: { name: string; diffMs: number } | null;
+  nextPrayer: { name: string; time: number } | null;
   todayTimings: Record<string, string> | null;
 }
 
 export default function PrayerPreview({ lang, loadingNext, nextPrayer, todayTimings }: PrayerPreviewProps) {
   const formatDiff = (ms: number) => {
-    const mins = Math.round(ms / 60000);
+    const mins = Math.max(0, Math.round(ms / 60000));
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return `${h ? `${h}h ` : ''}${m}m`;
   };
+
+  const [remaining, setRemaining] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (!nextPrayer) {
+      setRemaining(null);
+      return;
+    }
+    const update = () => setRemaining(nextPrayer.time - Date.now());
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [nextPrayer]);
 
   const localizePrayer = (name: string) => {
     const idx = eventNames.en.indexOf(name);
@@ -42,7 +55,9 @@ export default function PrayerPreview({ lang, loadingNext, nextPrayer, todayTimi
               <span className="font-medium">{translations[lang].nextPrayer}:</span>{' '}
               <span className="text-sky-600 dark:text-sky-400">{localizePrayer(nextPrayer.name)}</span>{' '}
               <span>{translations[lang].inLabel}</span>{' '}
-              <span className="font-medium text-gray-900 dark:text-white">{formatDiff(nextPrayer.diffMs)}</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                {remaining !== null ? formatDiff(remaining) : ''}
+              </span>
             </div>
           ) : null}
         </div>
