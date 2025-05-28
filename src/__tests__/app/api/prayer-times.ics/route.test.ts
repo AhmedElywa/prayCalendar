@@ -33,11 +33,31 @@ jest.mock('ical-generator', () => {
 
 jest.mock('moment/moment', () => {
   const mockMomentAdd = jest.fn().mockReturnThis();
-  const mockMoment = jest.fn(() => ({
-    toDate: jest.fn().mockReturnValue(new Date()),
+
+  // Create a proper mock moment object with chained methods
+  const createMockMoment = (): any => {
+    const mockInstance = {
+      toDate: jest.fn().mockReturnValue(new Date()),
+      add: jest.fn((value: any, unit: any): any => {
+        mockMomentAdd(value, unit);
+        return createMockMoment();
+      }),
+      isBefore: jest.fn().mockReturnValue(false),
+      startOf: jest.fn((): any => createMockMoment()),
+      endOf: jest.fn((): any => createMockMoment()),
+      format: jest.fn().mockReturnValue('01-01-2023'),
+      diff: jest.fn().mockReturnValue(12), // 12 hours until midnight
+      utc: jest.fn((): any => createMockMoment()),
+    };
+    return mockInstance;
+  };
+
+  const mockMoment = jest.fn(() => createMockMoment());
+
+  // Add static methods to the mock
+  Object.assign(mockMoment, {
     add: mockMomentAdd,
-    isBefore: jest.fn().mockReturnValue(false),
-  }));
+  });
 
   return {
     __esModule: true,
@@ -116,7 +136,7 @@ describe('Prayer Times API', () => {
     const responseText = await response.text();
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/calendar');
+    expect(response.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
     expect(responseText).toBe('calendar-content');
   });
 
@@ -136,9 +156,15 @@ describe('Prayer Times API', () => {
         method: '5',
       }),
       3,
+      expect.objectContaining({
+        latitude: '30.0444',
+        longitude: '31.2357',
+        method: '5',
+        lang: 'en',
+      }),
     );
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/calendar');
+    expect(response.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
   });
 
   it('respects months parameter', async () => {
@@ -150,7 +176,16 @@ describe('Prayer Times API', () => {
 
     await GET(request);
 
-    expect(getPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 6);
+    expect(getPrayerTimes).toHaveBeenCalledWith(
+      expect.any(Object),
+      6,
+      expect.objectContaining({
+        address: 'Cairo, Egypt',
+        method: '5',
+        months: '6',
+        lang: 'en',
+      }),
+    );
   });
 
   it('respects duration parameter', async () => {
@@ -175,7 +210,7 @@ describe('Prayer Times API', () => {
     const response = await GET(request);
 
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/calendar');
+    expect(response.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
   });
 
   it('uses Arabic names when lang parameter is ar', async () => {
@@ -238,7 +273,15 @@ describe('Prayer Times API', () => {
 
     await GET(request);
 
-    expect(getPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 3);
+    expect(getPrayerTimes).toHaveBeenCalledWith(
+      expect.any(Object),
+      3,
+      expect.objectContaining({
+        address: 'Cairo, Egypt',
+        method: '5',
+        lang: 'en',
+      }),
+    );
   });
 
   it('defaults to English when lang parameter is not provided', async () => {

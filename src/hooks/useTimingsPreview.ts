@@ -1,14 +1,33 @@
 import React from 'react';
-import type { InputMode } from './useLocationFields';
-import type { Lang } from './useLanguage';
+
+// Simple client-side cache for preview data
+const previewCache = new Map<
+  string,
+  {
+    data: { timings: Record<string, string>; nextPrayer: { name: string; time: number } | null };
+    timestamp: number;
+  }
+>();
+
+const PREVIEW_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 interface UseTimingsPreviewDeps {
-  inputMode: InputMode;
+  inputMode: 'address' | 'coords';
   address: string;
   latitude: number | '';
   longitude: number | '';
   method: string;
-  lang: Lang;
+  lang: string;
+}
+
+function generatePreviewCacheKey(deps: UseTimingsPreviewDeps): string {
+  const location = deps.inputMode === 'address' ? deps.address : `${deps.latitude || 0},${deps.longitude || 0}`;
+  const date = new Date().toISOString().split('T')[0];
+  return `preview:${location}:${deps.method}:${date}`;
+}
+
+function isPreviewCacheValid(entry: { timestamp: number }): boolean {
+  return Date.now() - entry.timestamp < PREVIEW_CACHE_TTL;
 }
 
 /** fetch next‑prayer & today's timetable */
@@ -26,14 +45,29 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
       setTodayTimings(null);
       return;
     }
+
+    // Check cache first
+    const cacheKey = generatePreviewCacheKey(deps);
+    const cachedEntry = previewCache.get(cacheKey);
+
+    if (cachedEntry && isPreviewCacheValid(cachedEntry)) {
+      console.log('Using cached preview data:', cacheKey);
+      setTodayTimings(cachedEntry.data.timings);
+      setNextPrayer(cachedEntry.data.nextPrayer);
+      return;
+    }
+
     setLoading(true);
     try {
       const url =
         inputMode === 'address'
           ? `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(address)}&method=${method}`
           : `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`;
+
+      console.log('Fetching fresh preview data:', cacheKey);
       const j = await (await fetch(url)).json();
       if (j.code !== 200) throw new Error();
+
       const timings: Record<string, string> = j.data.timings;
       setTodayTimings(timings);
 
@@ -50,6 +84,22 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
         }
       }
       setNextPrayer(upcoming);
+
+      // Cache the result
+      previewCache.set(cacheKey, {
+        data: { timings, nextPrayer: upcoming },
+        timestamp: Date.now(),
+      });
+
+      // Clean old cache entries periodically
+      if (Math.random() < 0.1) {
+        // 10% chance
+        for (const [key, entry] of previewCache.entries()) {
+          if (!isPreviewCacheValid(entry)) {
+            previewCache.delete(key);
+          }
+        }
+      }
     } catch {
       setNextPrayer(null);
       setTodayTimings(null);
