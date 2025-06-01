@@ -6,7 +6,8 @@
   "scripts": {
     "start": "next start --port ${PORT-3000}",
     "dev": "next",
-    "build": "next build",
+    "generate-sw": "node scripts/generate-sw.js",
+    "build": "pnpm run generate-sw && next build",
     "test": "jest",
     "test:watch": "jest --watch",
     "prepare": "husky",
