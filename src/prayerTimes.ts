@@ -239,16 +239,7 @@ export async function getPrayerTimes(
   const cachedEntry = prayerTimesCache.get(cacheKey);
   if (cachedEntry && isCacheValid(cachedEntry)) {
     cacheMonitor.recordHit();
-    console.log('Cache hit for prayer times:', {
-      cacheKey: cacheKey.substring(0, 100) + '...',
-      age: Date.now() - cachedEntry.timestamp,
-      cacheSize: estimateCacheSize(prayerTimesCache),
-    });
     return cachedEntry.data;
-  }
-
-  if (cachedEntry) {
-    console.log('Cache entry found but invalid, fetching fresh data');
   }
 
   /* ----------------------------- range build ----------------------- */
@@ -265,12 +256,6 @@ export async function getPrayerTimes(
   /* ----------------------------- fetch with Next.js cache --------- */
   try {
     cacheMonitor.recordMiss();
-    console.log('Cache miss, fetching from AlAdhan API:', {
-      cacheKey: cacheKey.substring(0, 100) + '...',
-      url: baseUrl,
-      cacheSize: estimateCacheSize(prayerTimesCache),
-      cacheStats: cacheMonitor.getStats(),
-    });
 
     // Use Next.js fetch with built-in caching instead of axios
     const url = new URL(baseUrl);
@@ -309,19 +294,12 @@ export async function getPrayerTimes(
       });
     }
 
-    console.log('Successfully cached prayer times:', {
-      cacheKey: cacheKey.substring(0, 100) + '...',
-      dataPoints: data.data.length,
-      timezone,
-      newCacheSize: estimateCacheSize(prayerTimesCache),
-    });
-
     // Periodic cache health check
     if (Math.random() < 0.05) {
       // 5% chance
       const health = checkCacheHealth(prayerTimesCache);
       if (!health.isHealthy) {
-        console.warn('Cache health issues detected:', health);
+        // handle cache health issues silently
       }
     }
 
@@ -332,7 +310,6 @@ export async function getPrayerTimes(
 
     // Fallback: return stale cache if available
     if (cachedEntry) {
-      console.log('Returning stale cache due to fetch error');
       return cachedEntry.data;
     }
   }

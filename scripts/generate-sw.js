@@ -12,4 +12,3 @@ let content = fs.readFileSync(templatePath, 'utf8');
 content = content.replace('__CACHE_VERSION__', cacheVersion);
 
 fs.writeFileSync(outputPath, content);
-console.log(`Generated service worker with cache version: ${cacheVersion}`);

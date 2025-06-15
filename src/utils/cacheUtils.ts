@@ -57,13 +57,6 @@ class CacheMonitor {
       lastReset: Date.now(),
     };
   }
-
-  logStats() {
-    console.log('Cache Statistics:', {
-      ...this.stats,
-      uptime: `${Math.round((Date.now() - this.stats.lastReset) / 1000 / 60)} minutes`,
-    });
-  }
 }
 
 // Global cache monitor instance

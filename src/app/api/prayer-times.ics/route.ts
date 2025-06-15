@@ -153,14 +153,6 @@ export async function GET(request: NextRequest) {
       ', ',
     );
 
-    console.log('Generated prayer times calendar:', {
-      location: queryParams.address || `${queryParams.latitude},${queryParams.longitude}`,
-      events: allowedEvents.length,
-      days: days.length,
-      cacheTag,
-      cacheControl,
-    });
-
     return new NextResponse(calendar.toString(), {
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',

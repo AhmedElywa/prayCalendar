@@ -51,7 +51,6 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
     const cachedEntry = previewCache.get(cacheKey);
 
     if (cachedEntry && isPreviewCacheValid(cachedEntry)) {
-      console.log('Using cached preview data:', cacheKey);
       setTodayTimings(cachedEntry.data.timings);
       setNextPrayer(cachedEntry.data.nextPrayer);
       return;
@@ -64,7 +63,6 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
           ? `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(address)}&method=${method}`
           : `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`;
 
-      console.log('Fetching fresh preview data:', cacheKey);
       const j = await (await fetch(url)).json();
       if (j.code !== 200) throw new Error();
 
