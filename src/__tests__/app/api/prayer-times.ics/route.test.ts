@@ -188,6 +188,48 @@ describe('Prayer Times API', () => {
     );
   });
 
+  it('caps months parameter at 11', async () => {
+    const request = createMockRequest({
+      address: 'Cairo, Egypt',
+      method: '5',
+      months: '20',
+    });
+
+    await GET(request);
+
+    expect(getPrayerTimes).toHaveBeenCalledWith(
+      expect.any(Object),
+      11,
+      expect.objectContaining({
+        address: 'Cairo, Egypt',
+        method: '5',
+        months: '11',
+        lang: 'en',
+      }),
+    );
+  });
+
+  it('floors months parameter to 1', async () => {
+    const request = createMockRequest({
+      address: 'Cairo, Egypt',
+      method: '5',
+      months: '0',
+    });
+
+    await GET(request);
+
+    expect(getPrayerTimes).toHaveBeenCalledWith(
+      expect.any(Object),
+      1,
+      expect.objectContaining({
+        address: 'Cairo, Egypt',
+        method: '5',
+        months: '1',
+        lang: 'en',
+      }),
+    );
+  });
+
   it('respects duration parameter', async () => {
     const request = createMockRequest({
       address: 'Cairo, Egypt',

@@ -61,6 +61,16 @@ export async function GET(request: NextRequest) {
   // Ensure lang has a value for cache key consistency
   allRequestParams.lang = lang;
 
+  // Sanitize months parameter
+  let monthsCount = 3;
+  if (months !== null) {
+    const parsed = parseInt(months, 10);
+    if (!isNaN(parsed)) {
+      monthsCount = Math.min(Math.max(parsed, 1), 11);
+    }
+    allRequestParams.months = monthsCount.toString();
+  }
+
   // Build query params object for getPrayerTimes (excluding UI-specific params)
   const queryParams: any = {};
   for (const [key, value] of searchParams.entries()) {
@@ -77,7 +87,7 @@ export async function GET(request: NextRequest) {
   try {
     // Fetch calendar data – now accepts address OR latitude/longitude
     // Pass all request parameters for comprehensive cache key generation
-    const days = await getPrayerTimes(queryParams, months ? +months : 3, allRequestParams);
+    const days = await getPrayerTimes(queryParams, monthsCount, allRequestParams);
     if (!days) {
       return NextResponse.json({ message: 'Invalid address or coordinates' }, { status: 400 });
     }
