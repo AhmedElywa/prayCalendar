@@ -24,6 +24,11 @@ export default function HomePage() {
   const [months, setMonths] = React.useState(3);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
 
+  /* ---------- Ramadan mode state ---------- */
+  const [ramadanMode, setRamadanMode] = React.useState(false);
+  const [iftarDuration, setIftarDuration] = React.useState(30);
+  const [traweehDuration, setTraweehDuration] = React.useState(60);
+
   /* ---------- events selection ---------- */
   const alarmOrder = alarmOptionsData.map((o) => o.value);
   const allEvents = React.useMemo(() => eventNames[lang], [lang]);
@@ -44,12 +49,15 @@ export default function HomePage() {
   const eventsParam = selectedEvents.length === allEvents.length ? '' : `&events=${selectedEvents.join(',')}`;
   const alarmParam = alarms.length ? `&alarm=${alarms.join(',')}` : '';
   const monthsParam = months !== 3 ? `&months=${months}` : '';
+  const ramadanParam = ramadanMode
+    ? `&ramadanMode=true&iftarDuration=${iftarDuration}&traweehDuration=${traweehDuration}`
+    : '';
   const locationParam =
     locationFields.inputMode === 'address'
       ? `address=${encodeURIComponent(locationFields.address)}`
       : `latitude=${locationFields.latitude}&longitude=${locationFields.longitude}`;
 
-  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}&lang=${lang}`;
+  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${lang}`;
 
   // timings preview hook
   const {
@@ -103,6 +111,12 @@ export default function HomePage() {
               allEvents={allEvents}
               selectedEvents={selectedEvents}
               handleEventToggle={handleEventToggle}
+              ramadanMode={ramadanMode}
+              setRamadanMode={setRamadanMode}
+              iftarDuration={iftarDuration}
+              setIftarDuration={setIftarDuration}
+              traweehDuration={traweehDuration}
+              setTraweehDuration={setTraweehDuration}
             />
 
             {/* Copy Link */}
@@ -117,7 +131,14 @@ export default function HomePage() {
 
           <div className="space-y-6">
             {/* Prayer Preview */}
-            <PrayerPreview loadingNext={loadingNext} nextPrayer={nextPrayer} todayTimings={todayTimings} />
+            <PrayerPreview
+              loadingNext={loadingNext}
+              nextPrayer={nextPrayer}
+              todayTimings={todayTimings}
+              ramadanMode={ramadanMode}
+              iftarDuration={iftarDuration}
+              traweehDuration={traweehDuration}
+            />
           </div>
         </div>
 
