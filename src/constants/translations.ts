@@ -63,6 +63,11 @@ export const translations = {
     dismiss: 'Dismiss',
     changeLocation: 'Change location',
     changeSettings: 'Change settings',
+    ramadanMode: 'Ramadan Mode',
+    ramadanModeDescription: 'Extend Maghrib and Isha prayer times during Ramadan',
+    iftarDuration: 'Iftar duration (minutes)',
+    traweehDuration: 'Tarawih duration (minutes)',
+    enableRamadanMode: 'Enable Ramadan Mode',
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
@@ -127,5 +132,10 @@ export const translations = {
     dismiss: 'إغلاق',
     changeLocation: 'تغيير الموقع',
     changeSettings: 'تغيير الإعدادات',
+    ramadanMode: 'وضع رمضان',
+    ramadanModeDescription: 'إطالة أوقات صلاة المغرب والعشاء أثناء رمضان',
+    iftarDuration: 'مدة الإفطار (دقيقة)',
+    traweehDuration: 'مدة التراويح (دقيقة)',
+    enableRamadanMode: 'تفعيل وضع رمضان',
   },
 };
