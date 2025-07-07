@@ -307,6 +307,35 @@ describe('Prayer Times API', () => {
     });
   });
 
+  it('handles Ramadan mode parameters correctly', async () => {
+    const request = createMockRequest({
+      address: 'Cairo, Egypt',
+      method: '5',
+      ramadanMode: 'true',
+      iftarDuration: '45',
+      traweehDuration: '90',
+    });
+
+    await GET(request);
+
+    expect(getPrayerTimes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: 'Cairo, Egypt',
+        method: '5',
+      }),
+      3,
+      expect.objectContaining({
+        address: 'Cairo, Egypt',
+        method: '5',
+        ramadanMode: 'true',
+        iftarDuration: '45',
+        traweehDuration: '90',
+        lang: 'en',
+      }),
+    );
+    expect(mockCreateEvent).toHaveBeenCalled();
+  });
+
   it('defaults to 3 months when months parameter is not provided', async () => {
     const request = createMockRequest({
       address: 'Cairo, Egypt',
