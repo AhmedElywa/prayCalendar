@@ -1,16 +1,26 @@
 import React from 'react';
-import { translations } from '../constants/translations';
+import { BellAlertIcon, ClockIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { eventNames } from '../constants/prayerData';
-import { BellAlertIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 
 interface PrayerPreviewProps {
   loadingNext: boolean;
   nextPrayer: { name: string; time: number } | null;
   todayTimings: Record<string, string> | null;
+  ramadanMode?: boolean;
+  iftarDuration?: number;
+  traweehDuration?: number;
 }
 
-export default function PrayerPreview({ loadingNext, nextPrayer, todayTimings }: PrayerPreviewProps) {
+export default function PrayerPreview({
+  loadingNext,
+  nextPrayer,
+  todayTimings,
+  ramadanMode = false,
+  iftarDuration = 30,
+  traweehDuration = 60,
+}: PrayerPreviewProps) {
   const { lang } = useAppContext();
   const formatDiff = (ms: number) => {
     const diff = Math.max(0, ms);
@@ -43,8 +53,28 @@ export default function PrayerPreview({ loadingNext, nextPrayer, todayTimings }:
     return idx === -1 ? name : eventNames[lang][idx];
   };
 
+  // Check if today is in Ramadan (simplified check - in a real app you'd use the actual Hijri date)
+  // For now, we'll show Ramadan mode if it's enabled, regardless of the actual date
+  const isRamadanToday = ramadanMode;
+
+  const getPrayerDuration = (prayerName: string) => {
+    if (isRamadanToday) {
+      if (prayerName === 'Maghrib') return iftarDuration;
+      if (prayerName === 'Isha') return traweehDuration;
+    }
+    return null; // Use default duration
+  };
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+      {/* Ramadan Mode Indicator */}
+      {isRamadanToday && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg bg-sky-50 p-3 dark:bg-sky-900/20">
+          <MoonIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />
+          <span className="text-sm font-medium text-sky-700 dark:text-sky-300">{translations[lang].ramadanMode}</span>
+        </div>
+      )}
+
       {/* Next prayer timer */}
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900">
@@ -78,17 +108,25 @@ export default function PrayerPreview({ loadingNext, nextPrayer, todayTimings }:
           </div>
           <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 divide-y divide-gray-200 dark:divide-gray-700">
-              {['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'].map((ev, index) => (
-                <div
-                  key={ev}
-                  className={`flex items-center justify-between p-3 ${
-                    index % 2 === 0 ? 'bg-white dark:bg-zinc-900' : 'bg-gray-50 dark:bg-zinc-800'
-                  }`}
-                >
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{localizePrayer(ev)}</span>
-                  <span className="font-mono text-sm text-gray-900 dark:text-white">{todayTimings[ev]}</span>
-                </div>
-              ))}
+              {['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'].map((ev, index) => {
+                const extendedDuration = getPrayerDuration(ev);
+                return (
+                  <div
+                    key={ev}
+                    className={`flex items-center justify-between p-3 ${
+                      index % 2 === 0 ? 'bg-white dark:bg-zinc-900' : 'bg-gray-50 dark:bg-zinc-800'
+                    } ${extendedDuration ? 'border-l-4 border-sky-400' : ''}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{localizePrayer(ev)}</span>
+                      {extendedDuration && (
+                        <span className="text-xs text-sky-600 dark:text-sky-400">(+{extendedDuration}min)</span>
+                      )}
+                    </div>
+                    <span className="font-mono text-sm text-gray-900 dark:text-white">{todayTimings[ev]}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
