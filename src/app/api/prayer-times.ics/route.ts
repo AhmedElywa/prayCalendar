@@ -43,6 +43,14 @@ function calculateCacheDuration(): { maxAge: number; swr: number } {
   }
 }
 
+/**
+ * Checks if a given day is in Ramadan based on Hijri calendar data
+ * Ramadan is the 9th month in the Hijri calendar
+ */
+function isRamadan(day: any): boolean {
+  return day.date?.hijri?.month?.number === 9;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
@@ -52,6 +60,11 @@ export async function GET(request: NextRequest) {
   const events = searchParams.get('events');
   const lang = searchParams.get('lang') || 'en';
   const months = searchParams.get('months');
+
+  // Extract Ramadan mode parameters
+  const ramadanMode = searchParams.get('ramadanMode') === 'true';
+  const iftarDuration = parseInt(searchParams.get('iftarDuration') || '30', 10);
+  const traweehDuration = parseInt(searchParams.get('traweehDuration') || '60', 10);
 
   // Collect ALL request parameters for cache key generation
   const allRequestParams: Record<string, string> = {};
@@ -74,7 +87,11 @@ export async function GET(request: NextRequest) {
   // Build query params object for getPrayerTimes (excluding UI-specific params)
   const queryParams: any = {};
   for (const [key, value] of searchParams.entries()) {
-    if (!['alarm', 'duration', 'events', 'lang', 'months'].includes(key)) {
+    if (
+      !['alarm', 'duration', 'events', 'lang', 'months', 'ramadanMode', 'iftarDuration', 'traweehDuration'].includes(
+        key,
+      )
+    ) {
       queryParams[key] = value;
     }
   }
@@ -122,15 +139,27 @@ export async function GET(request: NextRequest) {
     for (const day of days) {
       if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment(), 'day')) continue;
 
+      // Check if current day is in Ramadan for Ramadan mode
+      const isRamadanDay = ramadanMode && isRamadan(day);
+
       for (const [name, time] of Object.entries(day.timings)) {
         if (!allowedEvents.includes(name)) continue;
 
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
-        const defaultDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
+        let eventDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
+
+        // Apply Ramadan mode duration extensions
+        if (isRamadanDay) {
+          if (name === 'Maghrib') {
+            eventDuration = iftarDuration;
+          } else if (name === 'Isha') {
+            eventDuration = traweehDuration;
+          }
+        }
 
         const event = calendar.createEvent({
           start: startDate,
-          end: moment(startDate).add(defaultDuration, 'minute').toDate(),
+          end: moment(startDate).add(eventDuration, 'minute').toDate(),
           summary: lang === 'ar' ? arabicNames[name] || name : name,
           timezone: day.meta.timezone,
         });
