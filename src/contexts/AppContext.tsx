@@ -11,9 +11,9 @@ interface AppContextValue {
 const AppContext = React.createContext<AppContextValue | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('ar') ? 'ar' : 'en';
-  const savedLang = typeof window !== 'undefined' ? (localStorage.getItem('lang') as Lang | null) : null;
-  const { lang, setLang } = useLanguage(savedLang ?? browserLang);
+  // Always start with 'en' to avoid hydration mismatch
+  // The useLanguage hook will handle client-side initialization
+  const { lang, setLang } = useLanguage('en');
 
   const locationFields = useLocationFields();
 
