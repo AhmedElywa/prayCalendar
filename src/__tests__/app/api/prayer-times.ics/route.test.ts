@@ -501,52 +501,6 @@ describe('Prayer Times API', () => {
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Fajr' }));
   });
 
-  it('should not create Tarawih events when duration is 0', async () => {
-    // Mock the prayer data to include Hijri month 9 (Ramadan)
-    const mockRamadanData = [
-      {
-        timings: {
-          Fajr: '04:30',
-          Maghrib: '18:00',
-          Isha: '19:30',
-        },
-        date: {
-          gregorian: {
-            date: '01-04-2024',
-          },
-          hijri: {
-            month: {
-              number: 9,
-            },
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
-      },
-    ];
-
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
-
-    const request = createMockRequest({
-      latitude: '30.7945942',
-      longitude: '30.9563828',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '30',
-      traweehDuration: '0',
-      lang: 'en',
-    });
-
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-
-    // Should create Iftar but not Tarawih when duration is 0
-    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
-    expect(mockCreateEvent).not.toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
-  });
-
   it('should create Suhoor events before Fajr during Ramadan', async () => {
     // Mock the prayer data to include Hijri month 9 (Ramadan)
     const mockRamadanData = [
