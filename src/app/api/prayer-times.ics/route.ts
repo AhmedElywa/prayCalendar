@@ -148,6 +148,26 @@ export async function GET(request: NextRequest) {
       timezone: days[0].meta.timezone,
     });
 
+    // Helper function to add alarms to an event
+    const addAlarmsToEvent = (event: any, alarmString: string | null) => {
+      if (!alarmString) return;
+
+      const alarmValues = alarmString
+        .split(',')
+        .map((a) => parseInt(a, 10))
+        .filter((a) => !isNaN(a));
+
+      for (const a of alarmValues) {
+        if (a > 0) {
+          event.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
+        } else if (a < 0) {
+          event.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
+        } else {
+          event.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
+        }
+      }
+    };
+
     for (const day of days) {
       if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment(), 'day')) continue;
 
@@ -170,22 +190,7 @@ export async function GET(request: NextRequest) {
           timezone: day.meta.timezone,
         });
 
-        if (alarm) {
-          const alarmValues = alarm
-            .split(',')
-            .map((a) => parseInt(a, 10))
-            .filter((a) => !isNaN(a));
-
-          for (const a of alarmValues) {
-            if (a > 0) {
-              event.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
-            } else if (a < 0) {
-              event.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
-            } else {
-              event.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
-            }
-          }
-        }
+        addAlarmsToEvent(event, alarm);
 
         // Create separate Iftar and Tarawih events during Ramadan
         if (isRamadanDay) {
@@ -199,23 +204,7 @@ export async function GET(request: NextRequest) {
               timezone: day.meta.timezone,
             });
 
-            // Add alarms to Suhoor event if configured
-            if (alarm) {
-              const alarmValues = alarm
-                .split(',')
-                .map((a) => parseInt(a, 10))
-                .filter((a) => !isNaN(a));
-
-              for (const a of alarmValues) {
-                if (a > 0) {
-                  suhoorEvent.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
-                } else if (a < 0) {
-                  suhoorEvent.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
-                } else {
-                  suhoorEvent.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
-                }
-              }
-            }
+            addAlarmsToEvent(suhoorEvent, alarm);
           }
 
           if (name === 'Maghrib') {
@@ -228,23 +217,7 @@ export async function GET(request: NextRequest) {
               timezone: day.meta.timezone,
             });
 
-            // Add alarms to Iftar event if configured
-            if (alarm) {
-              const alarmValues = alarm
-                .split(',')
-                .map((a) => parseInt(a, 10))
-                .filter((a) => !isNaN(a));
-
-              for (const a of alarmValues) {
-                if (a > 0) {
-                  iftarEvent.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
-                } else if (a < 0) {
-                  iftarEvent.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
-                } else {
-                  iftarEvent.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
-                }
-              }
-            }
+            addAlarmsToEvent(iftarEvent, alarm);
           }
 
           if (name === 'Isha' && traweehDuration > 0) {
@@ -257,23 +230,7 @@ export async function GET(request: NextRequest) {
               timezone: day.meta.timezone,
             });
 
-            // Add alarms to Tarawih event if configured
-            if (alarm) {
-              const alarmValues = alarm
-                .split(',')
-                .map((a) => parseInt(a, 10))
-                .filter((a) => !isNaN(a));
-
-              for (const a of alarmValues) {
-                if (a > 0) {
-                  tarawihEvent.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
-                } else if (a < 0) {
-                  tarawihEvent.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
-                } else {
-                  tarawihEvent.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
-                }
-              }
-            }
+            addAlarmsToEvent(tarawihEvent, alarm);
           }
         }
       }
