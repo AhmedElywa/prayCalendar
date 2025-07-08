@@ -46,6 +46,15 @@ export default function HomePage() {
     );
 
   /* ---------- build ICS link ---------- */
+  const [baseUrl, setBaseUrl] = React.useState('');
+
+  // Get current domain and protocol from browser
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setBaseUrl(`${window.location.protocol}//${window.location.host}`);
+    }
+  }, []);
+
   const eventsParam = selectedEvents.length === allEvents.length ? '' : `&events=${selectedEvents.join(',')}`;
   const alarmParam = alarms.length ? `&alarm=${alarms.join(',')}` : '';
   const monthsParam = months !== 3 ? `&months=${months}` : '';
@@ -57,7 +66,9 @@ export default function HomePage() {
       ? `address=${encodeURIComponent(locationFields.address)}`
       : `latitude=${locationFields.latitude}&longitude=${locationFields.longitude}`;
 
-  const link = `https://pray.ahmedelywa.com/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${lang}`;
+  const link = baseUrl
+    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${lang}`
+    : '';
 
   // timings preview hook
   const {
