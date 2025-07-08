@@ -57,14 +57,6 @@ export default function PrayerPreview({
   // For now, we'll show Ramadan mode if it's enabled, regardless of the actual date
   const isRamadanToday = ramadanMode;
 
-  const getPrayerDuration = (prayerName: string) => {
-    if (isRamadanToday) {
-      if (prayerName === 'Maghrib') return iftarDuration;
-      if (prayerName === 'Isha') return traweehDuration;
-    }
-    return null; // Use default duration
-  };
-
   // Check if location is set
   const hasLocation =
     locationFields.inputMode === 'address'
@@ -132,24 +124,50 @@ export default function PrayerPreview({
           <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 divide-y divide-gray-200 dark:divide-gray-700">
               {['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'].map((ev, index) => {
-                const extendedDuration = getPrayerDuration(ev);
                 return (
                   <div
                     key={ev}
                     className={`flex items-center justify-between p-3 ${
                       index % 2 === 0 ? 'bg-white dark:bg-zinc-900' : 'bg-gray-50 dark:bg-zinc-800'
-                    } ${extendedDuration ? 'border-l-4 border-sky-400' : ''}`}
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{localizePrayer(ev)}</span>
-                      {extendedDuration && (
-                        <span className="text-xs text-sky-600 dark:text-sky-400">(+{extendedDuration}min)</span>
-                      )}
                     </div>
                     <span className="font-mono text-sm text-gray-900 dark:text-white">{todayTimings[ev]}</span>
                   </div>
                 );
               })}
+
+              {/* Show separate Iftar and Tarawih events during Ramadan */}
+              {isRamadanToday && (
+                <>
+                  <div className="flex items-center justify-between border-l-4 border-sky-400 bg-sky-50 p-3 dark:bg-sky-900/20">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        {translations[lang].iftar}
+                      </span>
+                      <span className="text-xs text-sky-600 dark:text-sky-400">({iftarDuration}min)</span>
+                    </div>
+                    <span className="font-mono text-sm text-sky-700 dark:text-sky-300">
+                      {translations[lang].afterMaghrib}
+                    </span>
+                  </div>
+                  {traweehDuration > 0 && (
+                    <div className="flex items-center justify-between border-l-4 border-sky-400 bg-sky-50 p-3 dark:bg-sky-900/20">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          {translations[lang].tarawih}
+                        </span>
+                        <span className="text-xs text-sky-600 dark:text-sky-400">({traweehDuration}min)</span>
+                      </div>
+                      <span className="font-mono text-sm text-sky-700 dark:text-sky-300">
+                        {translations[lang].afterIsha}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

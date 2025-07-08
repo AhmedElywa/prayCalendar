@@ -87,12 +87,12 @@ export default function AdvancedOptions({
                     <input
                       type="number"
                       step={1}
-                      min={5}
+                      min={15}
                       max={120}
                       value={iftarDuration}
                       onChange={(e) => {
                         const value = +e.target.value;
-                        if (value >= 5 && value <= 120) {
+                        if (value >= 15 && value <= 120) {
                           setIftarDuration(value);
                         }
                       }}
@@ -111,12 +111,12 @@ export default function AdvancedOptions({
                     <input
                       type="number"
                       step={1}
-                      min={15}
+                      min={0}
                       max={180}
                       value={traweehDuration}
                       onChange={(e) => {
                         const value = +e.target.value;
-                        if (value >= 15 && value <= 180) {
+                        if (value >= 0 && value <= 180) {
                           setTraweehDuration(value);
                         }
                       }}
