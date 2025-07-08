@@ -88,11 +88,11 @@ export default function AdvancedOptions({
                       type="number"
                       step={1}
                       min={15}
-                      max={120}
+                      max={60}
                       value={iftarDuration}
                       onChange={(e) => {
                         const value = +e.target.value;
-                        if (value >= 15 && value <= 120) {
+                        if (value >= 15 && value <= 60) {
                           setIftarDuration(value);
                         }
                       }}
