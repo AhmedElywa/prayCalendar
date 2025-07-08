@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
   const ramadanMode = searchParams.get('ramadanMode') === 'true';
   const iftarDuration = parseInt(searchParams.get('iftarDuration') || '30', 10);
   const traweehDuration = parseInt(searchParams.get('traweehDuration') || '60', 10);
+  const suhoorDuration = parseInt(searchParams.get('suhoorDuration') || '30', 10);
 
   // Collect ALL request parameters for cache key generation
   const allRequestParams: Record<string, string> = {};
@@ -88,9 +89,17 @@ export async function GET(request: NextRequest) {
   const queryParams: any = {};
   for (const [key, value] of searchParams.entries()) {
     if (
-      !['alarm', 'duration', 'events', 'lang', 'months', 'ramadanMode', 'iftarDuration', 'traweehDuration'].includes(
-        key,
-      )
+      ![
+        'alarm',
+        'duration',
+        'events',
+        'lang',
+        'months',
+        'ramadanMode',
+        'iftarDuration',
+        'traweehDuration',
+        'suhoorDuration',
+      ].includes(key)
     ) {
       queryParams[key] = value;
     }
@@ -124,6 +133,7 @@ export async function GET(request: NextRequest) {
       Midnight: 'منتصف الليل',
       Iftar: 'الإفطار',
       Tarawih: 'التراويح',
+      Suhoor: 'السحور',
     };
 
     const allowedEvents = events
@@ -179,6 +189,35 @@ export async function GET(request: NextRequest) {
 
         // Create separate Iftar and Tarawih events during Ramadan
         if (isRamadanDay) {
+          if (name === 'Fajr' && suhoorDuration > 0) {
+            // Create Suhoor event before Fajr prayer
+            const suhoorStartDate = moment(startDate).subtract(suhoorDuration, 'minute').toDate();
+            const suhoorEvent = calendar.createEvent({
+              start: suhoorStartDate,
+              end: startDate,
+              summary: lang === 'ar' ? arabicNames['Suhoor'] : 'Suhoor',
+              timezone: day.meta.timezone,
+            });
+
+            // Add alarms to Suhoor event if configured
+            if (alarm) {
+              const alarmValues = alarm
+                .split(',')
+                .map((a) => parseInt(a, 10))
+                .filter((a) => !isNaN(a));
+
+              for (const a of alarmValues) {
+                if (a > 0) {
+                  suhoorEvent.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
+                } else if (a < 0) {
+                  suhoorEvent.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
+                } else {
+                  suhoorEvent.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
+                }
+              }
+            }
+          }
+
           if (name === 'Maghrib') {
             // Create Iftar event after Maghrib prayer
             const iftarStartDate = moment(startDate).add(eventDuration, 'minute').toDate();
@@ -206,7 +245,9 @@ export async function GET(request: NextRequest) {
                 }
               }
             }
-          } else if (name === 'Isha' && traweehDuration > 0) {
+          }
+
+          if (name === 'Isha' && traweehDuration > 0) {
             // Create Tarawih event after Isha prayer (only if duration > 0)
             const tarawihStartDate = moment(startDate).add(eventDuration, 'minute').toDate();
             const tarawihEvent = calendar.createEvent({

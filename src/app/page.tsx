@@ -28,6 +28,7 @@ export default function HomePage() {
   const [ramadanMode, setRamadanMode] = React.useState(false);
   const [iftarDuration, setIftarDuration] = React.useState(30);
   const [traweehDuration, setTraweehDuration] = React.useState(60);
+  const [suhoorDuration, setSuhoorDuration] = React.useState(30);
 
   /* ---------- events selection ---------- */
   const alarmOrder = alarmOptionsData.map((o) => o.value);
@@ -59,7 +60,7 @@ export default function HomePage() {
   const alarmParam = alarms.length ? `&alarm=${alarms.join(',')}` : '';
   const monthsParam = months !== 3 ? `&months=${months}` : '';
   const ramadanParam = ramadanMode
-    ? `&ramadanMode=true&iftarDuration=${iftarDuration}&traweehDuration=${traweehDuration}`
+    ? `&ramadanMode=true&iftarDuration=${iftarDuration}&traweehDuration=${traweehDuration}&suhoorDuration=${suhoorDuration}`
     : '';
   const locationParam =
     locationFields.inputMode === 'address'
@@ -128,6 +129,8 @@ export default function HomePage() {
               setIftarDuration={setIftarDuration}
               traweehDuration={traweehDuration}
               setTraweehDuration={setTraweehDuration}
+              suhoorDuration={suhoorDuration}
+              setSuhoorDuration={setSuhoorDuration}
             />
 
             {/* Copy Link */}
@@ -149,6 +152,7 @@ export default function HomePage() {
               ramadanMode={ramadanMode}
               iftarDuration={iftarDuration}
               traweehDuration={traweehDuration}
+              suhoorDuration={suhoorDuration}
             />
           </div>
         </div>

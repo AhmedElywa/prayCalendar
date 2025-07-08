@@ -11,6 +11,7 @@ interface PrayerPreviewProps {
   ramadanMode?: boolean;
   iftarDuration?: number;
   traweehDuration?: number;
+  suhoorDuration?: number;
 }
 
 export default function PrayerPreview({
@@ -20,6 +21,7 @@ export default function PrayerPreview({
   ramadanMode = false,
   iftarDuration = 30,
   traweehDuration = 60,
+  suhoorDuration = 30,
 }: PrayerPreviewProps) {
   const { lang, locationFields } = useAppContext();
   const formatDiff = (ms: number) => {
@@ -142,6 +144,19 @@ export default function PrayerPreview({
               {/* Show separate Iftar and Tarawih events during Ramadan */}
               {isRamadanToday && (
                 <>
+                  {suhoorDuration > 0 && (
+                    <div className="flex items-center justify-between border-l-4 border-sky-400 bg-sky-50 p-3 dark:bg-sky-900/20">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          {translations[lang].suhoor}
+                        </span>
+                        <span className="text-xs text-sky-600 dark:text-sky-400">({suhoorDuration}min)</span>
+                      </div>
+                      <span className="font-mono text-sm text-sky-700 dark:text-sky-300">
+                        {translations[lang].beforeFajr}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between border-l-4 border-sky-400 bg-sky-50 p-3 dark:bg-sky-900/20">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-200">

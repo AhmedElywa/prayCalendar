@@ -18,6 +18,8 @@ interface AdvancedOptionsProps {
   setIftarDuration: (duration: number) => void;
   traweehDuration: number;
   setTraweehDuration: (duration: number) => void;
+  suhoorDuration: number;
+  setSuhoorDuration: (duration: number) => void;
 }
 
 export default function AdvancedOptions({
@@ -34,6 +36,8 @@ export default function AdvancedOptions({
   setIftarDuration,
   traweehDuration,
   setTraweehDuration,
+  suhoorDuration,
+  setSuhoorDuration,
 }: AdvancedOptionsProps) {
   const { lang } = useAppContext();
   return (
@@ -78,7 +82,7 @@ export default function AdvancedOptions({
 
             {/* Duration inputs - only show when Ramadan mode is enabled */}
             {ramadanMode && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-200">
                     {translations[lang].iftarDuration}
@@ -118,6 +122,30 @@ export default function AdvancedOptions({
                         const value = +e.target.value;
                         if (value >= 0 && value <= 180) {
                           setTraweehDuration(value);
+                        }
+                      }}
+                      className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                    />
+                    <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">min</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-200">
+                    {translations[lang].suhoorDuration}
+                  </label>
+                  <div className="relative rounded-md shadow-sm">
+                    <input
+                      type="number"
+                      step={1}
+                      min={0}
+                      max={120}
+                      value={suhoorDuration}
+                      onChange={(e) => {
+                        const value = +e.target.value;
+                        if (value >= 0 && value <= 120) {
+                          setSuhoorDuration(value);
                         }
                       }}
                       className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
