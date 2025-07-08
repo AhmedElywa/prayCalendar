@@ -122,6 +122,8 @@ export async function GET(request: NextRequest) {
       Maghrib: 'المغرب',
       Isha: 'العشاء',
       Midnight: 'منتصف الليل',
+      Iftar: 'الإفطار',
+      Tarawih: 'التراويح',
     };
 
     const allowedEvents = events
@@ -148,14 +150,8 @@ export async function GET(request: NextRequest) {
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
         let eventDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
 
-        // Apply Ramadan mode duration extensions
-        if (isRamadanDay) {
-          if (name === 'Maghrib') {
-            eventDuration = iftarDuration;
-          } else if (name === 'Isha') {
-            eventDuration = traweehDuration;
-          }
-        }
+        // Keep original prayer durations even in Ramadan mode
+        // We'll create separate events for Iftar and Tarawih below
 
         const event = calendar.createEvent({
           start: startDate,
@@ -177,6 +173,65 @@ export async function GET(request: NextRequest) {
               event.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
             } else {
               event.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
+            }
+          }
+        }
+
+        // Create separate Iftar and Tarawih events during Ramadan
+        if (isRamadanDay) {
+          if (name === 'Maghrib') {
+            // Create Iftar event after Maghrib prayer
+            const iftarStartDate = moment(startDate).add(eventDuration, 'minute').toDate();
+            const iftarEvent = calendar.createEvent({
+              start: iftarStartDate,
+              end: moment(iftarStartDate).add(iftarDuration, 'minute').toDate(),
+              summary: lang === 'ar' ? arabicNames['Iftar'] : 'Iftar',
+              timezone: day.meta.timezone,
+            });
+
+            // Add alarms to Iftar event if configured
+            if (alarm) {
+              const alarmValues = alarm
+                .split(',')
+                .map((a) => parseInt(a, 10))
+                .filter((a) => !isNaN(a));
+
+              for (const a of alarmValues) {
+                if (a > 0) {
+                  iftarEvent.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
+                } else if (a < 0) {
+                  iftarEvent.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
+                } else {
+                  iftarEvent.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
+                }
+              }
+            }
+          } else if (name === 'Isha' && traweehDuration > 0) {
+            // Create Tarawih event after Isha prayer (only if duration > 0)
+            const tarawihStartDate = moment(startDate).add(eventDuration, 'minute').toDate();
+            const tarawihEvent = calendar.createEvent({
+              start: tarawihStartDate,
+              end: moment(tarawihStartDate).add(traweehDuration, 'minute').toDate(),
+              summary: lang === 'ar' ? arabicNames['Tarawih'] : 'Tarawih',
+              timezone: day.meta.timezone,
+            });
+
+            // Add alarms to Tarawih event if configured
+            if (alarm) {
+              const alarmValues = alarm
+                .split(',')
+                .map((a) => parseInt(a, 10))
+                .filter((a) => !isNaN(a));
+
+              for (const a of alarmValues) {
+                if (a > 0) {
+                  tarawihEvent.createAlarm({ type: ICalAlarmType.audio, triggerBefore: a * 60 });
+                } else if (a < 0) {
+                  tarawihEvent.createAlarm({ type: ICalAlarmType.audio, triggerAfter: Math.abs(a) * 60 });
+                } else {
+                  tarawihEvent.createAlarm({ type: ICalAlarmType.audio, trigger: 0 });
+                }
+              }
             }
           }
         }
