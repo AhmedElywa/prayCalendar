@@ -336,6 +336,144 @@ describe('Prayer Times API', () => {
     expect(mockCreateEvent).toHaveBeenCalled();
   });
 
+  it('creates separate Iftar and Tarawih events during Ramadan', async () => {
+    // Mock the prayer data to include Hijri month 9 (Ramadan)
+    const mockRamadanData = [
+      {
+        timings: {
+          Fajr: '04:30',
+          Sunrise: '06:00',
+          Dhuhr: '12:00',
+          Asr: '15:30',
+          Maghrib: '18:00',
+          Isha: '19:30',
+          Midnight: '00:00',
+        },
+        date: {
+          gregorian: {
+            date: '01-04-2024', // Date in Ramadan
+          },
+          hijri: {
+            month: {
+              number: 9, // Ramadan month
+            },
+          },
+        },
+        meta: {
+          timezone: 'Africa/Cairo',
+        },
+      },
+    ];
+
+    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
+
+    const request = createMockRequest({
+      address: 'Cairo, Egypt',
+      method: '5',
+      ramadanMode: 'true',
+      iftarDuration: '45',
+      traweehDuration: '90',
+      lang: 'en',
+    });
+
+    await GET(request);
+
+    // Should create regular prayer events plus separate Iftar and Tarawih events
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Maghrib' }));
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Isha' }));
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
+  });
+
+  it('does not create Tarawih event when duration is 0', async () => {
+    // Mock the prayer data to include Hijri month 9 (Ramadan)
+    const mockRamadanData = [
+      {
+        timings: {
+          Fajr: '04:30',
+          Sunrise: '06:00',
+          Dhuhr: '12:00',
+          Asr: '15:30',
+          Maghrib: '18:00',
+          Isha: '19:30',
+          Midnight: '00:00',
+        },
+        date: {
+          gregorian: {
+            date: '01-04-2024', // Date in Ramadan
+          },
+          hijri: {
+            month: {
+              number: 9, // Ramadan month
+            },
+          },
+        },
+        meta: {
+          timezone: 'Africa/Cairo',
+        },
+      },
+    ];
+
+    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
+
+    const request = createMockRequest({
+      address: 'Cairo, Egypt',
+      method: '5',
+      ramadanMode: 'true',
+      iftarDuration: '30',
+      traweehDuration: '0', // No Tarawih
+      lang: 'en',
+    });
+
+    await GET(request);
+
+    // Should create Iftar but not Tarawih when duration is 0
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
+    expect(mockCreateEvent).not.toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
+  });
+
+  it('creates separate Iftar and Tarawih events with Arabic names', async () => {
+    // Mock the prayer data to include Hijri month 9 (Ramadan)
+    const mockRamadanData = [
+      {
+        timings: {
+          Maghrib: '18:00',
+          Isha: '19:30',
+        },
+        date: {
+          gregorian: {
+            date: '01-04-2024', // Date in Ramadan
+          },
+          hijri: {
+            month: {
+              number: 9, // Ramadan month
+            },
+          },
+        },
+        meta: {
+          timezone: 'Africa/Cairo',
+        },
+      },
+    ];
+
+    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
+
+    const request = createMockRequest({
+      address: 'Cairo, Egypt',
+      method: '5',
+      ramadanMode: 'true',
+      iftarDuration: '45',
+      traweehDuration: '90',
+      lang: 'ar',
+    });
+
+    await GET(request);
+
+    // Should create Arabic-named Iftar and Tarawih events
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'الإفطار' }));
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'التراويح' }));
+  });
+
   it('defaults to 3 months when months parameter is not provided', async () => {
     const request = createMockRequest({
       address: 'Cairo, Egypt',
