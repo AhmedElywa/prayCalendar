@@ -68,6 +68,8 @@ export const translations = {
     iftarDuration: 'Iftar duration (minutes)',
     traweehDuration: 'Tarawih duration (minutes)',
     enableRamadanMode: 'Enable Ramadan Mode',
+    enterLocationTitle: 'Enter your location to view prayer times',
+    enterLocationDescription: 'Enter your address or coordinates above to see prayer times for your area',
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
@@ -137,5 +139,7 @@ export const translations = {
     iftarDuration: 'مدة الإفطار (دقيقة)',
     traweehDuration: 'مدة التراويح (دقيقة)',
     enableRamadanMode: 'تفعيل وضع رمضان',
+    enterLocationTitle: 'أدخل موقعك لعرض مواقيت الصلاة',
+    enterLocationDescription: 'أدخل عنوانك أو إحداثياتك في الأعلى لرؤية مواقيت الصلاة لمنطقتك',
   },
 };
