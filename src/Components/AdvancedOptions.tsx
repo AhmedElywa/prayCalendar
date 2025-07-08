@@ -57,7 +57,7 @@ export default function AdvancedOptions({
             <p className="mb-4 text-xs text-gray-600 dark:text-gray-400">{translations[lang].ramadanModeDescription}</p>
 
             {/* Toggle switch */}
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-4 flex items-center gap-3" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
               <label className="relative inline-flex cursor-pointer items-center">
                 <input
                   type="checkbox"
@@ -65,7 +65,13 @@ export default function AdvancedOptions({
                   onChange={(e) => setRamadanMode(e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-600 peer-focus:ring-4 peer-focus:ring-sky-300 after:absolute after:start-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-checked:bg-sky-600 dark:peer-focus:ring-sky-800"></div>
+                <div
+                  className={`peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-sky-600 peer-focus:ring-4 peer-focus:ring-sky-300 after:absolute after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700 dark:peer-checked:bg-sky-600 dark:peer-focus:ring-sky-800 ${
+                    lang === 'ar'
+                      ? 'after:right-[2px] peer-checked:after:-translate-x-full'
+                      : 'after:left-[2px] peer-checked:after:translate-x-full'
+                  }`}
+                ></div>
               </label>
               <span className="text-sm text-gray-700 dark:text-gray-300">{translations[lang].enableRamadanMode}</span>
             </div>
