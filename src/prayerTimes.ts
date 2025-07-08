@@ -262,7 +262,7 @@ export async function getPrayerTimes(
     ? `https://api.aladhan.com/v1/calendarByAddress/from/${start}/to/${end}`
     : `https://api.aladhan.com/v1/calendar/from/${start}/to/${end}`;
 
-  /* ----------------------------- fetch with Next.js cache --------- */
+  /* ----------------------------- fetch with retries --------- */
   try {
     cacheMonitor.recordMiss();
     console.log('Cache miss, fetching from AlAdhan API:', {
@@ -272,7 +272,7 @@ export async function getPrayerTimes(
       cacheStats: cacheMonitor.getStats(),
     });
 
-    // Use Next.js fetch with built-in caching instead of axios
+    // Build URL with parameters
     const url = new URL(baseUrl);
     Object.entries(convertedParams).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -280,52 +280,90 @@ export async function getPrayerTimes(
       }
     });
 
-    const response = await fetch(url.toString(), {
-      // Next.js data cache - cache for 1 day
-      next: { revalidate: 86400 },
-      headers: {
-        Accept: 'application/json',
-        'User-Agent': 'PrayerCalendar/1.0',
-      },
-    });
+    // Retry logic with exponential backoff
+    const maxRetries = 3;
+    let lastError: Error | null = null;
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`AlAdhan API request attempt ${attempt}/${maxRetries}:`, url.toString());
 
-    const data: Response = await response.json();
+        // Create AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-    if (data.code !== 200 || !data.data) {
-      throw new Error(`AlAdhan API error: ${data.status || 'Unknown error'}`);
-    }
+        const response = await fetch(url.toString(), {
+          // Next.js data cache - cache for 1 day
+          next: { revalidate: 86400 },
+          headers: {
+            Accept: 'application/json',
+            'User-Agent': 'PrayerCalendar/1.0',
+          },
+          signal: controller.signal,
+        });
 
-    // Store in memory cache
-    const timezone = data.data[0]?.meta?.timezone || 'UTC';
-    if (isValidCacheKey(cacheKey)) {
-      prayerTimesCache.set(cacheKey, {
-        data: data.data,
-        timestamp: Date.now(),
-        timezone,
-      });
-    }
+        clearTimeout(timeoutId);
 
-    console.log('Successfully cached prayer times:', {
-      cacheKey: cacheKey.substring(0, 100) + '...',
-      dataPoints: data.data.length,
-      timezone,
-      newCacheSize: estimateCacheSize(prayerTimesCache),
-    });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-    // Periodic cache health check
-    if (Math.random() < 0.05) {
-      // 5% chance
-      const health = checkCacheHealth(prayerTimesCache);
-      if (!health.isHealthy) {
-        console.warn('Cache health issues detected:', health);
+        const data: Response = await response.json();
+
+        if (data.code !== 200 || !data.data) {
+          throw new Error(`AlAdhan API error: ${data.status || 'Unknown error'}`);
+        }
+
+        console.log(`AlAdhan API request succeeded on attempt ${attempt}`);
+
+        // Store in memory cache
+        const timezone = data.data[0]?.meta?.timezone || 'UTC';
+        if (isValidCacheKey(cacheKey)) {
+          prayerTimesCache.set(cacheKey, {
+            data: data.data,
+            timestamp: Date.now(),
+            timezone,
+          });
+        }
+
+        console.log('Successfully cached prayer times:', {
+          cacheKey: cacheKey.substring(0, 100) + '...',
+          dataPoints: data.data.length,
+          timezone,
+          newCacheSize: estimateCacheSize(prayerTimesCache),
+        });
+
+        // Periodic cache health check
+        if (Math.random() < 0.05) {
+          // 5% chance
+          const health = checkCacheHealth(prayerTimesCache);
+          if (!health.isHealthy) {
+            console.warn('Cache health issues detected:', health);
+          }
+        }
+
+        return data.data;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`AlAdhan API attempt ${attempt}/${maxRetries} failed:`, {
+          error: lastError.message,
+          name: lastError.name,
+        });
+
+        // Don't retry on the last attempt
+        if (attempt === maxRetries) {
+          break;
+        }
+
+        // Exponential backoff: wait 1s, 2s, 4s between retries
+        const delayMs = Math.pow(2, attempt - 1) * 1000;
+        console.log(`Waiting ${delayMs}ms before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
 
-    return data.data;
+    // If we get here, all retries failed
+    throw lastError || new Error('All retry attempts failed');
   } catch (error) {
     cacheMonitor.recordError();
     console.error('Failed to fetch prayer times:', error);
