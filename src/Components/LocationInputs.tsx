@@ -106,7 +106,9 @@ export default function LocationInputs() {
         <div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Latitude</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                {translations[lang].latitude}
+              </label>
               <div className="mt-1">
                 <input
                   type="number"
@@ -118,7 +120,9 @@ export default function LocationInputs() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Longitude</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                {translations[lang].longitude}
+              </label>
               <div className="mt-1">
                 <input
                   type="number"

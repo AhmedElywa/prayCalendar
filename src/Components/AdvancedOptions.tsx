@@ -58,28 +58,28 @@ export default function AdvancedOptions({
 
   // Validation functions
   const validateIftar = (value: string) => {
-    if (value === '') return 'Iftar duration is required';
+    if (value === '') return translations[lang].iftarRequired;
     const num = parseInt(value, 10);
     if (isNaN(num) || num < 15 || num > 60) {
-      return 'Iftar duration must be between 15 and 60 minutes';
+      return translations[lang].iftarInvalid;
     }
     return '';
   };
 
   const validateTraweeh = (value: string) => {
-    if (value === '') return 'Taraweeh duration is required';
+    if (value === '') return translations[lang].traweehRequired;
     const num = parseInt(value, 10);
     if (isNaN(num) || num < 0 || num > 180) {
-      return 'Taraweeh duration must be between 0 and 180 minutes';
+      return translations[lang].traweehInvalid;
     }
     return '';
   };
 
   const validateSuhoor = (value: string) => {
-    if (value === '') return 'Suhoor duration is required';
+    if (value === '') return translations[lang].suhoorRequired;
     const num = parseInt(value, 10);
     if (isNaN(num) || num < 0 || num > 120) {
-      return 'Suhoor duration must be between 0 and 120 minutes';
+      return translations[lang].suhoorInvalid;
     }
     return '';
   };

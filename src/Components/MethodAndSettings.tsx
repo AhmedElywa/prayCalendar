@@ -42,19 +42,19 @@ export default function MethodAndSettings({
 
   // Validation functions
   const validateDuration = (value: string) => {
-    if (value === '') return 'Duration is required';
+    if (value === '') return translations[lang].durationRequired;
     const num = parseInt(value, 10);
     if (isNaN(num) || num < 5 || num > 60) {
-      return 'Duration must be between 5 and 60 minutes';
+      return translations[lang].durationInvalid;
     }
     return '';
   };
 
   const validateMonths = (value: string) => {
-    if (value === '') return 'Calendar length is required';
+    if (value === '') return translations[lang].monthsRequired;
     const num = parseInt(value, 10);
     if (isNaN(num) || num < 1 || num > 11) {
-      return 'Calendar length must be between 1 and 11 months';
+      return translations[lang].monthsInvalid;
     }
     return '';
   };
@@ -206,7 +206,7 @@ export default function MethodAndSettings({
             <div className="flex items-center gap-2">
               <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
               <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                Please fix the validation errors above before generating calendar
+                {translations[lang].validationSummaryMessage}
               </span>
             </div>
           </div>

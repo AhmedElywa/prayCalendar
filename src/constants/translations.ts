@@ -2,6 +2,8 @@ export const translations = {
   en: {
     title: 'Generate Prayer Calendar Subscription Link',
     addressRadio: 'By address',
+    latitude: 'Latitude',
+    longitude: 'Longitude',
     coordsRadio: 'By coordinates (lat/lon)',
     address: 'Location',
     addressHint: '(City, State, Country - English)',
@@ -86,10 +88,26 @@ export const translations = {
     calendarUrlLabel: 'Calendar URL',
     calendarUrlDescription:
       "If the above options don't work for you, you can paste this URL into your calendar. Most calendars have an 'Add Subscription Calendar' option.",
+    // Validation error messages
+    durationRequired: 'Duration is required',
+    durationInvalid: 'Duration must be between 5 and 60 minutes',
+    monthsRequired: 'Calendar length is required',
+    monthsInvalid: 'Calendar length must be between 1 and 11 months',
+    iftarRequired: 'Iftar duration is required',
+    iftarInvalid: 'Iftar duration must be between 15 and 60 minutes',
+    traweehRequired: 'Taraweeh duration is required',
+    traweehInvalid: 'Taraweeh duration must be between 0 and 180 minutes',
+    suhoorRequired: 'Suhoor duration is required',
+    suhoorInvalid: 'Suhoor duration must be between 0 and 120 minutes',
+    validationErrorTitle: 'Please fix validation errors',
+    validationErrorDescription: 'Complete all required fields with valid values before adding to calendar',
+    validationSummaryMessage: 'Please fix the validation errors above before generating calendar',
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
     addressRadio: 'عن طريق العنوان',
+    latitude: 'خط العرض',
+    longitude: 'خط الطول',
     coordsRadio: 'عن طريق الإحداثيات (خطّ العرض/خطّ الطول)',
     address: 'الموقع',
     addressHint: '(المدينة، الولاية، الدولة - بالإنجليزية)',
@@ -173,5 +191,20 @@ export const translations = {
     calendarUrlLabel: 'رابط التقويم',
     calendarUrlDescription:
       'إذا لم تعمل الخيارات أعلاه معك، يمكنك لصق هذا الرابط في تقويمك. معظم التقاويم لديها خيار "إضافة اشتراك تقويم".',
+
+    // Validation error messages in Arabic
+    durationRequired: 'مدة الصلاة مطلوبة',
+    durationInvalid: 'يجب أن تكون مدة الصلاة بين 5 و 60 دقيقة',
+    monthsRequired: 'طول التقويم مطلوب',
+    monthsInvalid: 'يجب أن يكون طول التقويم بين 1 و 11 شهر',
+    iftarRequired: 'مدة الإفطار مطلوبة',
+    iftarInvalid: 'يجب أن تكون مدة الإفطار بين 15 و 60 دقيقة',
+    traweehRequired: 'مدة التراويح مطلوبة',
+    traweehInvalid: 'يجب أن تكون مدة التراويح بين 0 و 180 دقيقة',
+    suhoorRequired: 'مدة السحور مطلوبة',
+    suhoorInvalid: 'يجب أن تكون مدة السحور بين 0 و 120 دقيقة',
+    validationErrorTitle: 'يرجى إصلاح أخطاء التحقق',
+    validationErrorDescription: 'أكمل جميع الحقول المطلوبة بقيم صحيحة قبل إضافة التقويم',
+    validationSummaryMessage: 'يرجى إصلاح أخطاء التحقق أعلاه قبل إنشاء التقويم',
   },
 };
