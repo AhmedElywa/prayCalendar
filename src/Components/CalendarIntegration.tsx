@@ -67,7 +67,7 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-        <CalendarDaysIcon className="h-6 w-6" />
+        <CalendarDaysIcon className="h-6 w-6 text-sky-600 dark:text-sky-400" />
         {translations[lang].addToCalendar}
       </h3>
 
@@ -275,7 +275,7 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
                   <button
                     type="button"
                     onClick={handleCopy}
-                    className="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200 dark:hover:bg-zinc-600"
+                    className="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-sky-300 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 hover:bg-sky-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-sky-600 dark:bg-sky-900/30 dark:text-sky-300 dark:hover:bg-sky-900/50"
                   >
                     {copied ? <CheckIcon className="h-4 w-4" /> : <DocumentDuplicateIcon className="h-4 w-4" />}
                     <span>{copied ? translations[lang].copied : 'Copy'}</span>

@@ -4,7 +4,6 @@ import React from 'react';
 import CalendarIntegration from '../Components/CalendarIntegration';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
-import AdvancedOptions from '../Components/AdvancedOptions';
 import PrayerPreview from '../Components/PrayerPreview';
 import PageLayout from '../Components/PageLayout';
 import { useAppContext } from '../contexts/AppContext';
@@ -127,7 +126,7 @@ export default function HomePage() {
             {/* Location Inputs */}
             <LocationInputs />
 
-            {/* method and settings */}
+            {/* method and settings with advanced options */}
             <MethodAndSettings
               method={method}
               setMethod={setMethod}
@@ -138,10 +137,6 @@ export default function HomePage() {
               prayerLanguage={prayerLanguage}
               setPrayerLanguage={handlePrayerLanguageChange}
               onValidationChange={setMethodValidationErrors}
-            />
-
-            {/* advanced options */}
-            <AdvancedOptions
               showAdvanced={showAdvanced}
               setShowAdvanced={setShowAdvanced}
               alarms={alarms}
@@ -157,7 +152,7 @@ export default function HomePage() {
               setTraweehDuration={setTraweehDuration}
               suhoorDuration={suhoorDuration}
               setSuhoorDuration={setSuhoorDuration}
-              onValidationChange={setAdvancedValidationErrors}
+              onAdvancedValidationChange={setAdvancedValidationErrors}
             />
 
             {/* Calendar Integration */}

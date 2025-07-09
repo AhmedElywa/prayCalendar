@@ -1,6 +1,10 @@
 export const translations = {
   en: {
     title: 'Generate Prayer Calendar Subscription Link',
+    // Section titles
+    locationSettings: 'Location Settings',
+    prayerSettings: 'Prayer Settings',
+    addToCalendar: 'Add to Calendar',
     addressRadio: 'By address',
     latitude: 'Latitude',
     longitude: 'Longitude',
@@ -82,7 +86,6 @@ export const translations = {
     enterLocationTitle: 'Enter your location to view prayer times',
     enterLocationDescription: 'Enter your address or coordinates above to see prayer times for your area',
     // New calendar integration translations
-    addToCalendar: 'Add to Calendar',
     addToDevice: 'Add to your current device',
     manualInstructions: 'Add to Calendar Manually',
     calendarUrlLabel: 'Calendar URL',
@@ -105,6 +108,10 @@ export const translations = {
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
+    // Section titles
+    locationSettings: 'إعدادات الموقع',
+    prayerSettings: 'إعدادات الصلاة',
+    addToCalendar: 'إضافة إلى التقويم',
     addressRadio: 'عن طريق العنوان',
     latitude: 'خط العرض',
     longitude: 'خط الطول',
@@ -185,7 +192,6 @@ export const translations = {
     enterLocationTitle: 'أدخل موقعك لعرض مواقيت الصلاة',
     enterLocationDescription: 'أدخل عنوانك أو إحداثياتك في الأعلى لرؤية مواقيت الصلاة لمنطقتك',
     // New calendar integration translations
-    addToCalendar: 'إضافة إلى التقويم',
     addToDevice: 'إضافة إلى جهازك الحالي',
     manualInstructions: 'إضافة إلى التقويم يدوياً',
     calendarUrlLabel: 'رابط التقويم',
