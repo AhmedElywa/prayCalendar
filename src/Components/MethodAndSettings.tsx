@@ -1,6 +1,6 @@
 import React from 'react';
 import { translations } from '../constants/translations';
-import { CalendarDaysIcon, ClockIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, ClockIcon, GlobeAltIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { MethodSelectFields } from './MethodSelect';
 import { useAppContext } from '../contexts/AppContext';
 import type { Lang } from '../hooks/useLanguage';
@@ -14,6 +14,7 @@ interface MethodAndSettingsProps {
   setMonths: (months: number) => void;
   prayerLanguage: Lang;
   setPrayerLanguage: (lang: Lang) => void;
+  onValidationChange?: (hasErrors: boolean) => void;
 }
 
 export default function MethodAndSettings({
@@ -25,8 +26,81 @@ export default function MethodAndSettings({
   setMonths,
   prayerLanguage,
   setPrayerLanguage,
+  onValidationChange,
 }: MethodAndSettingsProps) {
   const { lang } = useAppContext();
+
+  // Validation states
+  const [durationError, setDurationError] = React.useState('');
+  const [monthsError, setMonthsError] = React.useState('');
+  const [durationTouched, setDurationTouched] = React.useState(false);
+  const [monthsTouched, setMonthsTouched] = React.useState(false);
+
+  // Input values as strings to allow empty state
+  const [durationValue, setDurationValue] = React.useState(duration.toString());
+  const [monthsValue, setMonthsValue] = React.useState(months.toString());
+
+  // Validation functions
+  const validateDuration = (value: string) => {
+    if (value === '') return 'Duration is required';
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 5 || num > 60) {
+      return 'Duration must be between 5 and 60 minutes';
+    }
+    return '';
+  };
+
+  const validateMonths = (value: string) => {
+    if (value === '') return 'Calendar length is required';
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 1 || num > 11) {
+      return 'Calendar length must be between 1 and 11 months';
+    }
+    return '';
+  };
+
+  // Handle duration changes
+  const handleDurationChange = (value: string) => {
+    setDurationValue(value);
+    const error = validateDuration(value);
+    setDurationError(error);
+
+    if (!error && value !== '') {
+      setDuration(parseInt(value, 10));
+    }
+  };
+
+  const handleDurationBlur = () => {
+    setDurationTouched(true);
+    const error = validateDuration(durationValue);
+    setDurationError(error);
+  };
+
+  // Handle months changes
+  const handleMonthsChange = (value: string) => {
+    setMonthsValue(value);
+    const error = validateMonths(value);
+    setMonthsError(error);
+
+    if (!error && value !== '') {
+      setMonths(parseInt(value, 10));
+    }
+  };
+
+  const handleMonthsBlur = () => {
+    setMonthsTouched(true);
+    const error = validateMonths(monthsValue);
+    setMonthsError(error);
+  };
+
+  // Check if there are any validation errors
+  const hasValidationErrors = durationError !== '' || monthsError !== '';
+
+  // Notify parent component of validation changes
+  React.useEffect(() => {
+    onValidationChange?.(hasValidationErrors);
+  }, [hasValidationErrors, onValidationChange]);
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       <div className="space-y-6">
@@ -48,19 +122,26 @@ export default function MethodAndSettings({
                 step={1}
                 min={5}
                 max={60}
-                value={duration}
-                onChange={(e) => {
-                  const value = +e.target.value;
-                  if (value >= 5 && value <= 60) {
-                    setDuration(value);
-                  }
-                }}
-                className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                value={durationValue}
+                placeholder="5 - 60"
+                onChange={(e) => handleDurationChange(e.target.value)}
+                onBlur={handleDurationBlur}
+                className={`w-full rounded-md border py-2 ps-3 pe-12 shadow-sm transition focus:ring-1 focus:outline-none dark:bg-zinc-800 dark:text-white ${
+                  durationError && durationTouched
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500'
+                    : 'border-gray-300 focus:border-sky-500 focus:ring-sky-500 dark:border-gray-600'
+                }`}
               />
               <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
                 <span className="text-gray-500 sm:text-sm dark:text-gray-400">min</span>
               </div>
             </div>
+            {durationError && durationTouched && (
+              <div className="mt-1 flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <span>{durationError}</span>
+              </div>
+            )}
           </div>
 
           <div>
@@ -74,19 +155,26 @@ export default function MethodAndSettings({
                 step={1}
                 min={1}
                 max={11}
-                value={months}
-                onChange={(e) => {
-                  const value = +e.target.value;
-                  if (value <= 11) {
-                    setMonths(value);
-                  }
-                }}
-                className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                value={monthsValue}
+                placeholder="1 - 11"
+                onChange={(e) => handleMonthsChange(e.target.value)}
+                onBlur={handleMonthsBlur}
+                className={`w-full rounded-md border py-2 ps-3 pe-12 shadow-sm transition focus:ring-1 focus:outline-none dark:bg-zinc-800 dark:text-white ${
+                  monthsError && monthsTouched
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500'
+                    : 'border-gray-300 focus:border-sky-500 focus:ring-sky-500 dark:border-gray-600'
+                }`}
               />
               <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
                 <span className="text-gray-500 sm:text-sm dark:text-gray-400">months</span>
               </div>
             </div>
+            {monthsError && monthsTouched && (
+              <div className="mt-1 flex items-center gap-1 text-sm text-red-600 dark:text-red-400">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <span>{monthsError}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -111,6 +199,18 @@ export default function MethodAndSettings({
             </select>
           </div>
         </div>
+
+        {/* Validation Summary Warning */}
+        {hasValidationErrors && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
+            <div className="flex items-center gap-2">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                Please fix the validation errors above before generating calendar
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

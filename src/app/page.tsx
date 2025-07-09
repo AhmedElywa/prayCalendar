@@ -24,6 +24,16 @@ export default function HomePage() {
   const [prayerLanguage, setPrayerLanguage] = React.useState<Lang>(lang); // Default to app language
   const [showAdvanced, setShowAdvanced] = React.useState(false);
 
+  // Validation states
+  const [hasValidationErrors, setHasValidationErrors] = React.useState(false);
+  const [methodValidationErrors, setMethodValidationErrors] = React.useState(false);
+  const [advancedValidationErrors, setAdvancedValidationErrors] = React.useState(false);
+
+  // Combine validation errors from both components
+  React.useEffect(() => {
+    setHasValidationErrors(methodValidationErrors || advancedValidationErrors);
+  }, [methodValidationErrors, advancedValidationErrors]);
+
   // Update prayer language when app language changes (unless user has explicitly set a different prayer language)
   const [userSetPrayerLanguage, setUserSetPrayerLanguage] = React.useState(false);
   React.useEffect(() => {
@@ -117,7 +127,7 @@ export default function HomePage() {
             {/* Location Inputs */}
             <LocationInputs />
 
-            {/* Method and Settings */}
+            {/* method and settings */}
             <MethodAndSettings
               method={method}
               setMethod={setMethod}
@@ -127,9 +137,10 @@ export default function HomePage() {
               setMonths={setMonths}
               prayerLanguage={prayerLanguage}
               setPrayerLanguage={handlePrayerLanguageChange}
+              onValidationChange={setMethodValidationErrors}
             />
 
-            {/* Advanced Options */}
+            {/* advanced options */}
             <AdvancedOptions
               showAdvanced={showAdvanced}
               setShowAdvanced={setShowAdvanced}
@@ -146,10 +157,11 @@ export default function HomePage() {
               setTraweehDuration={setTraweehDuration}
               suhoorDuration={suhoorDuration}
               setSuhoorDuration={setSuhoorDuration}
+              onValidationChange={setAdvancedValidationErrors}
             />
 
             {/* Calendar Integration */}
-            <CalendarIntegration link={link} />
+            <CalendarIntegration link={link} hasValidationErrors={hasValidationErrors} />
           </div>
 
           <div className="space-y-6">
