@@ -11,6 +11,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { useTimingsPreview } from '../hooks';
 import { translations } from '../constants/translations';
 import { eventNames, alarmOptionsData } from '../constants/prayerData';
+import type { Lang } from '../hooks/useLanguage';
 
 export default function HomePage() {
   const { lang, locationFields } = useAppContext();
@@ -20,7 +21,21 @@ export default function HomePage() {
   const [alarms, setAlarms] = React.useState<number[]>([5]);
   const [duration, setDuration] = React.useState(25);
   const [months, setMonths] = React.useState(3);
+  const [prayerLanguage, setPrayerLanguage] = React.useState<Lang>(lang); // Default to app language
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+
+  // Update prayer language when app language changes (unless user has explicitly set a different prayer language)
+  const [userSetPrayerLanguage, setUserSetPrayerLanguage] = React.useState(false);
+  React.useEffect(() => {
+    if (!userSetPrayerLanguage) {
+      setPrayerLanguage(lang);
+    }
+  }, [lang, userSetPrayerLanguage]);
+
+  const handlePrayerLanguageChange = (newLang: Lang) => {
+    setPrayerLanguage(newLang);
+    setUserSetPrayerLanguage(true);
+  };
 
   /* ---------- Ramadan mode state ---------- */
   const [ramadanMode, setRamadanMode] = React.useState(false);
@@ -66,7 +81,7 @@ export default function HomePage() {
       : `latitude=${locationFields.latitude}&longitude=${locationFields.longitude}`;
 
   const link = baseUrl
-    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${lang}`
+    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${prayerLanguage}`
     : '';
 
   // timings preview hook
@@ -110,6 +125,8 @@ export default function HomePage() {
               setDuration={setDuration}
               months={months}
               setMonths={setMonths}
+              prayerLanguage={prayerLanguage}
+              setPrayerLanguage={handlePrayerLanguageChange}
             />
 
             {/* Advanced Options */}

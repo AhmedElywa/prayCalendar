@@ -1,8 +1,9 @@
 import React from 'react';
 import { translations } from '../constants/translations';
-import { CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, ClockIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import { MethodSelectFields } from './MethodSelect';
 import { useAppContext } from '../contexts/AppContext';
+import type { Lang } from '../hooks/useLanguage';
 
 interface MethodAndSettingsProps {
   method: string;
@@ -11,6 +12,8 @@ interface MethodAndSettingsProps {
   setDuration: (duration: number) => void;
   months: number;
   setMonths: (months: number) => void;
+  prayerLanguage: Lang;
+  setPrayerLanguage: (lang: Lang) => void;
 }
 
 export default function MethodAndSettings({
@@ -20,6 +23,8 @@ export default function MethodAndSettings({
   setDuration,
   months,
   setMonths,
+  prayerLanguage,
+  setPrayerLanguage,
 }: MethodAndSettingsProps) {
   const { lang } = useAppContext();
   return (
@@ -57,6 +62,7 @@ export default function MethodAndSettings({
               </div>
             </div>
           </div>
+
           <div>
             <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
               <CalendarDaysIcon className="h-5 w-5" />
@@ -81,6 +87,28 @@ export default function MethodAndSettings({
                 <span className="text-gray-500 sm:text-sm dark:text-gray-400">months</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Prayer Language Dropdown */}
+        <div>
+          <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+            <GlobeAltIcon className="h-5 w-5" />
+            {translations[lang].prayerLanguage}
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2">
+              <GlobeAltIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            </div>
+            <select
+              value={prayerLanguage}
+              onChange={(e) => setPrayerLanguage(e.target.value as Lang)}
+              className="block w-full appearance-none rounded-md border border-gray-300 bg-white py-2 ps-8 pe-3 text-sm shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+              title={translations[lang].prayerLanguageDescription}
+            >
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
           </div>
         </div>
       </div>
