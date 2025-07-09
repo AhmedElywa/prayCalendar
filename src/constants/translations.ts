@@ -77,6 +77,13 @@ export const translations = {
     beforeFajr: 'Before Fajr',
     enterLocationTitle: 'Enter your location to view prayer times',
     enterLocationDescription: 'Enter your address or coordinates above to see prayer times for your area',
+    // New calendar integration translations
+    addToCalendar: 'Add to Calendar',
+    addToDevice: 'Add to your current device',
+    manualInstructions: 'Add to Calendar Manually',
+    calendarUrlLabel: 'Calendar URL',
+    calendarUrlDescription:
+      "If the above options don't work for you, you can paste this URL into your calendar. Most calendars have an 'Add Subscription Calendar' option.",
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
@@ -155,5 +162,12 @@ export const translations = {
     beforeFajr: 'قبل الفجر',
     enterLocationTitle: 'أدخل موقعك لعرض مواقيت الصلاة',
     enterLocationDescription: 'أدخل عنوانك أو إحداثياتك في الأعلى لرؤية مواقيت الصلاة لمنطقتك',
+    // New calendar integration translations
+    addToCalendar: 'إضافة إلى التقويم',
+    addToDevice: 'إضافة إلى جهازك الحالي',
+    manualInstructions: 'إضافة إلى التقويم يدوياً',
+    calendarUrlLabel: 'رابط التقويم',
+    calendarUrlDescription:
+      'إذا لم تعمل الخيارات أعلاه معك، يمكنك لصق هذا الرابط في تقويمك. معظم التقاويم لديها خيار "إضافة اشتراك تقويم".',
   },
 };

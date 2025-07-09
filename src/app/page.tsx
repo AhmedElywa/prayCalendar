@@ -1,18 +1,16 @@
 'use client';
 
 import React from 'react';
-import CopyText from '../Components/CopyText';
+import CalendarIntegration from '../Components/CalendarIntegration';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
 import AdvancedOptions from '../Components/AdvancedOptions';
 import PrayerPreview from '../Components/PrayerPreview';
-import InstructionsSection from '../Components/InstructionsSection';
 import PageLayout from '../Components/PageLayout';
 import { useAppContext } from '../contexts/AppContext';
 import { useTimingsPreview } from '../hooks';
 import { translations } from '../constants/translations';
 import { eventNames, alarmOptionsData } from '../constants/prayerData';
-import { LinkIcon } from '@heroicons/react/24/outline';
 
 export default function HomePage() {
   const { lang, locationFields } = useAppContext();
@@ -133,14 +131,8 @@ export default function HomePage() {
               setSuhoorDuration={setSuhoorDuration}
             />
 
-            {/* Copy Link */}
-            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
-              <div className="mb-4 flex items-center gap-2">
-                <LinkIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">{translations[lang].copy}</h3>
-              </div>
-              <CopyText text={link} copiedText={translations[lang].copied} />
-            </div>
+            {/* Calendar Integration */}
+            <CalendarIntegration link={link} />
           </div>
 
           <div className="space-y-6">
@@ -155,11 +147,6 @@ export default function HomePage() {
               suhoorDuration={suhoorDuration}
             />
           </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="mt-10">
-          <InstructionsSection />
         </div>
       </div>
     </PageLayout>
