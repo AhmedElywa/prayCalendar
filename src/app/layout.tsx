@@ -53,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body style={{ fontFamily: `'Nunito', sans-serif` }} className="dark:bg-zinc-800">
+      <body style={{ fontFamily: `'Nunito', sans-serif` }} className="dark:bg-zinc-800" suppressHydrationWarning={true}>
         <AppProvider>
           {children}
           <ServiceWorkerRegister />
