@@ -34,15 +34,17 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
     let webcalUrl = link.replace('https://', 'webcal://');
     let calendarUrl = '';
     switch (calendarType) {
-      case 'device':
+      case 'device': {
         window.open(webcalUrl, '_blank');
         break;
-      case 'google':
+      }
+      case 'google': {
         // Google Calendar subscription URL
         calendarUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`;
         window.open(calendarUrl, '_blank');
         break;
-      case 'outlook':
+      }
+      case 'outlook': {
         // Outlook calendar subscription URL with name and market locale
         // Extract lang parameter from the actual link URL
         const urlParams = new URLSearchParams(link.split('?')[1]);
@@ -53,12 +55,15 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
         calendarUrl = `https://outlook.office.com/calendar/0/addfromweb?${outlookLinkWithParams}`;
         window.open(calendarUrl, '_blank');
         break;
-      case 'apple':
+      }
+      case 'apple': {
         // Apple Calendar uses webcal:// directly
         window.open(webcalUrl, '_blank');
         break;
-      default:
+      }
+      default: {
         break;
+      }
     }
   };
 
