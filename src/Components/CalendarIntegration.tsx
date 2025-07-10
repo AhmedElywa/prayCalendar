@@ -97,6 +97,11 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
 
       {hasLocation && !hasValidationErrors && (
         <>
+          {/* Calendar sync notice */}
+          <div className="mb-4 rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+            <p className="text-sm text-blue-700 dark:text-blue-300">{translations[lang].calendarSyncNotice}</p>
+          </div>
+
           {/* Calendar service buttons */}
           <div className="grid grid-cols-3 gap-3">
             <button

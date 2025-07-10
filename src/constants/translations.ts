@@ -88,6 +88,7 @@ export const translations = {
     enterLocationDescription: 'Enter your address or coordinates above to see prayer times for your area',
     // New calendar integration translations
     addToDevice: 'Add to your current device',
+    calendarSyncNotice: 'Please note prayer times may take a few minutes to appear/sync in your calendar.',
     manualInstructions: 'Add to Calendar Manually',
     calendarUrlLabel: 'Calendar URL',
     calendarUrlDescription:
@@ -195,6 +196,7 @@ export const translations = {
     enterLocationDescription: 'أدخل عنوانك أو إحداثياتك في الأعلى لرؤية مواقيت الصلاة لمنطقتك',
     // New calendar integration translations
     addToDevice: 'إضافة إلى جهازك الحالي',
+    calendarSyncNotice: 'يرجى ملاحظة أن مواقيت الصلاة قد تستغرق بضع دقائق للظهور/التزامن في تقويمك.',
     manualInstructions: 'إضافة إلى التقويم يدوياً',
     calendarUrlLabel: 'رابط التقويم',
     calendarUrlDescription:
