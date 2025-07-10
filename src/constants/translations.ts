@@ -1,6 +1,7 @@
 export const translations = {
   en: {
     title: 'Generate Prayer Calendar Subscription Link',
+    calendarName: 'Prayer Times',
     // Section titles
     locationSettings: 'Location Settings',
     prayerSettings: 'Prayer Settings',
@@ -108,6 +109,7 @@ export const translations = {
   },
   ar: {
     title: 'إنشاء رابط اشتراك تقويم الصلاة',
+    calendarName: 'مواقيت الصلاة',
     // Section titles
     locationSettings: 'إعدادات الموقع',
     prayerSettings: 'إعدادات الصلاة',

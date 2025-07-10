@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPrayerTimes } from '../../../prayerTimes';
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
 import moment from 'moment/moment';
+import { translations } from '../../../constants/translations';
 
 /**
  * Generates a cache tag for this request based on all parameters
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       : allEvents;
 
-    const calendarName = lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times';
+    const calendarName = translations[lang as keyof typeof translations].calendarName;
 
     const calendar = ical({
       name: calendarName,
