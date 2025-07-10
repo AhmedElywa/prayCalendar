@@ -1,6 +1,6 @@
 import React from 'react';
 import { translations } from '../constants/translations';
-import { MapPinIcon } from '@heroicons/react/24/outline';
+import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function LocationInputs() {
@@ -19,6 +19,12 @@ export default function LocationInputs() {
   } = locationFields;
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+      {/* Section Title */}
+      <h3 className="mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
+        <MapIcon className="h-6 w-6 text-sky-600 dark:text-sky-400" />
+        {translations[lang].locationSettings}
+      </h3>
+
       {/* mode toggle */}
       <div className="mb-6">
         <div className="flex w-full rounded-md border border-gray-300 dark:border-gray-700">
@@ -106,7 +112,9 @@ export default function LocationInputs() {
         <div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Latitude</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                {translations[lang].latitude}
+              </label>
               <div className="mt-1">
                 <input
                   type="number"
@@ -118,7 +126,9 @@ export default function LocationInputs() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">Longitude</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                {translations[lang].longitude}
+              </label>
               <div className="mt-1">
                 <input
                   type="number"

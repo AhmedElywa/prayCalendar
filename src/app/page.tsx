@@ -1,18 +1,16 @@
 'use client';
 
 import React from 'react';
-import CopyText from '../Components/CopyText';
+import CalendarIntegration from '../Components/CalendarIntegration';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
-import AdvancedOptions from '../Components/AdvancedOptions';
 import PrayerPreview from '../Components/PrayerPreview';
-import InstructionsSection from '../Components/InstructionsSection';
 import PageLayout from '../Components/PageLayout';
 import { useAppContext } from '../contexts/AppContext';
 import { useTimingsPreview } from '../hooks';
 import { translations } from '../constants/translations';
 import { eventNames, alarmOptionsData } from '../constants/prayerData';
-import { LinkIcon } from '@heroicons/react/24/outline';
+import type { Lang } from '../hooks/useLanguage';
 
 export default function HomePage() {
   const { lang, locationFields } = useAppContext();
@@ -22,7 +20,31 @@ export default function HomePage() {
   const [alarms, setAlarms] = React.useState<number[]>([5]);
   const [duration, setDuration] = React.useState(25);
   const [months, setMonths] = React.useState(3);
+  const [prayerLanguage, setPrayerLanguage] = React.useState<Lang>(lang); // Default to app language
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+
+  // Validation states
+  const [hasValidationErrors, setHasValidationErrors] = React.useState(false);
+  const [methodValidationErrors, setMethodValidationErrors] = React.useState(false);
+  const [advancedValidationErrors, setAdvancedValidationErrors] = React.useState(false);
+
+  // Combine validation errors from both components
+  React.useEffect(() => {
+    setHasValidationErrors(methodValidationErrors || advancedValidationErrors);
+  }, [methodValidationErrors, advancedValidationErrors]);
+
+  // Update prayer language when app language changes (unless user has explicitly set a different prayer language)
+  const [userSetPrayerLanguage, setUserSetPrayerLanguage] = React.useState(false);
+  React.useEffect(() => {
+    if (!userSetPrayerLanguage) {
+      setPrayerLanguage(lang);
+    }
+  }, [lang, userSetPrayerLanguage]);
+
+  const handlePrayerLanguageChange = (newLang: Lang) => {
+    setPrayerLanguage(newLang);
+    setUserSetPrayerLanguage(true);
+  };
 
   /* ---------- Ramadan mode state ---------- */
   const [ramadanMode, setRamadanMode] = React.useState(false);
@@ -68,7 +90,7 @@ export default function HomePage() {
       : `latitude=${locationFields.latitude}&longitude=${locationFields.longitude}`;
 
   const link = baseUrl
-    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${lang}`
+    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}&lang=${prayerLanguage}`
     : '';
 
   // timings preview hook
@@ -104,7 +126,7 @@ export default function HomePage() {
             {/* Location Inputs */}
             <LocationInputs />
 
-            {/* Method and Settings */}
+            {/* method and settings with advanced options */}
             <MethodAndSettings
               method={method}
               setMethod={setMethod}
@@ -112,10 +134,9 @@ export default function HomePage() {
               setDuration={setDuration}
               months={months}
               setMonths={setMonths}
-            />
-
-            {/* Advanced Options */}
-            <AdvancedOptions
+              prayerLanguage={prayerLanguage}
+              setPrayerLanguage={handlePrayerLanguageChange}
+              onValidationChange={setMethodValidationErrors}
               showAdvanced={showAdvanced}
               setShowAdvanced={setShowAdvanced}
               alarms={alarms}
@@ -131,16 +152,11 @@ export default function HomePage() {
               setTraweehDuration={setTraweehDuration}
               suhoorDuration={suhoorDuration}
               setSuhoorDuration={setSuhoorDuration}
+              onAdvancedValidationChange={setAdvancedValidationErrors}
             />
 
-            {/* Copy Link */}
-            <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
-              <div className="mb-4 flex items-center gap-2">
-                <LinkIcon className="h-5 w-5 text-sky-600 dark:text-sky-400" />
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">{translations[lang].copy}</h3>
-              </div>
-              <CopyText text={link} copiedText={translations[lang].copied} />
-            </div>
+            {/* Calendar Integration */}
+            <CalendarIntegration link={link} hasValidationErrors={hasValidationErrors} />
           </div>
 
           <div className="space-y-6">
@@ -155,11 +171,6 @@ export default function HomePage() {
               suhoorDuration={suhoorDuration}
             />
           </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="mt-10">
-          <InstructionsSection />
         </div>
       </div>
     </PageLayout>
