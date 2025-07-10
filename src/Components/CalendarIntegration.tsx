@@ -30,28 +30,32 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
   };
 
   const handleCalendarClick = (calendarType: string) => {
+    // Use webcal:// protocol for native calendar apps
+    let webcalUrl = link.replace('https://', 'webcal://');
     let calendarUrl = '';
-
     switch (calendarType) {
       case 'device':
-        // Use webcal:// protocol for native calendar apps
-        calendarUrl = link.replace('https://', 'webcal://');
-        window.open(calendarUrl, '_blank');
+        window.open(webcalUrl, '_blank');
         break;
       case 'google':
         // Google Calendar subscription URL
-        calendarUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(link)}`;
+        calendarUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`;
         window.open(calendarUrl, '_blank');
         break;
       case 'outlook':
-        // Outlook calendar subscription URL
-        calendarUrl = `https://outlook.office.com/calendar/0/addcalendar?url=${encodeURIComponent(link)}`;
+        // Outlook calendar subscription URL with name and market locale
+        // Extract lang parameter from the actual link URL
+        const urlParams = new URLSearchParams(link.split('?')[1]);
+        const linkLang = urlParams.get('lang') || 'en'; // Default to 'en' if not found
+        const outlookMarketLocale = linkLang === 'en' ? 'en-001' : 'ar-001';
+        const calendarName = linkLang === 'en' ? translations.en.calendarName : translations.ar.calendarName;
+        const outlookLinkWithParams = `url=${encodeURIComponent(link)}&name=${encodeURIComponent(calendarName)}&mkt=${outlookMarketLocale}`;
+        calendarUrl = `https://outlook.office.com/calendar/0/addfromweb?${outlookLinkWithParams}`;
         window.open(calendarUrl, '_blank');
         break;
       case 'apple':
         // Apple Calendar uses webcal:// directly
-        calendarUrl = link.replace('https://', 'webcal://');
-        window.open(calendarUrl, '_blank');
+        window.open(webcalUrl, '_blank');
         break;
       default:
         break;
