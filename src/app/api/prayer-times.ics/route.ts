@@ -144,7 +144,9 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       : allEvents;
 
-    const calendarName = translations[lang as keyof typeof translations].calendarName;
+    // Ensure lang is valid
+    const validLang = ['en', 'ar'].includes(lang) ? lang : 'en';
+    const calendarName = translations[validLang as keyof typeof translations].calendarName;
 
     const calendar = ical({
       name: calendarName,
