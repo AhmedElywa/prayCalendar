@@ -1,7 +1,7 @@
 import React from 'react';
 import { translations } from '../constants/translations';
 import { alarmOptionsData } from '../constants/prayerData';
-import { ChevronDownIcon, ChevronUpIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronUpIcon, MoonIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../contexts/AppContext';
 
 interface AdvancedOptionsProps {
@@ -20,6 +20,7 @@ interface AdvancedOptionsProps {
   setTraweehDuration: (duration: number) => void;
   suhoorDuration: number;
   setSuhoorDuration: (duration: number) => void;
+  onValidationChange?: (hasErrors: boolean) => void;
 }
 
 export default function AdvancedOptions({
@@ -38,8 +39,108 @@ export default function AdvancedOptions({
   setTraweehDuration,
   suhoorDuration,
   setSuhoorDuration,
+  onValidationChange,
 }: AdvancedOptionsProps) {
   const { lang } = useAppContext();
+
+  // Validation states
+  const [iftarError, setIftarError] = React.useState('');
+  const [traweehError, setTraweehError] = React.useState('');
+  const [suhoorError, setSuhoorError] = React.useState('');
+  const [iftarTouched, setIftarTouched] = React.useState(false);
+  const [traweehTouched, setTraweehTouched] = React.useState(false);
+  const [suhoorTouched, setSuhoorTouched] = React.useState(false);
+
+  // Input values as strings to allow empty state
+  const [iftarValue, setIftarValue] = React.useState(iftarDuration.toString());
+  const [traweehValue, setTraweehValue] = React.useState(traweehDuration.toString());
+  const [suhoorValue, setSuhoorValue] = React.useState(suhoorDuration.toString());
+
+  // Validation functions
+  const validateIftar = (value: string) => {
+    if (value === '') return translations[lang].iftarRequired;
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 15 || num > 60) {
+      return translations[lang].iftarInvalid;
+    }
+    return '';
+  };
+
+  const validateTraweeh = (value: string) => {
+    if (value === '') return translations[lang].traweehRequired;
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 0 || num > 180) {
+      return translations[lang].traweehInvalid;
+    }
+    return '';
+  };
+
+  const validateSuhoor = (value: string) => {
+    if (value === '') return translations[lang].suhoorRequired;
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < 0 || num > 120) {
+      return translations[lang].suhoorInvalid;
+    }
+    return '';
+  };
+
+  // Handle input changes
+  const handleIftarChange = (value: string) => {
+    setIftarValue(value);
+    const error = validateIftar(value);
+    setIftarError(error);
+
+    if (!error && value !== '') {
+      setIftarDuration(parseInt(value, 10));
+    }
+  };
+
+  const handleIftarBlur = () => {
+    setIftarTouched(true);
+    const error = validateIftar(iftarValue);
+    setIftarError(error);
+  };
+
+  const handleTraweehChange = (value: string) => {
+    setTraweehValue(value);
+    const error = validateTraweeh(value);
+    setTraweehError(error);
+
+    if (!error && value !== '') {
+      setTraweehDuration(parseInt(value, 10));
+    }
+  };
+
+  const handleTraweehBlur = () => {
+    setTraweehTouched(true);
+    const error = validateTraweeh(traweehValue);
+    setTraweehError(error);
+  };
+
+  const handleSuhoorChange = (value: string) => {
+    setSuhoorValue(value);
+    const error = validateSuhoor(value);
+    setSuhoorError(error);
+
+    if (!error && value !== '') {
+      setSuhoorDuration(parseInt(value, 10));
+    }
+  };
+
+  const handleSuhoorBlur = () => {
+    setSuhoorTouched(true);
+    const error = validateSuhoor(suhoorValue);
+    setSuhoorError(error);
+  };
+
+  // Check if there are any validation errors (only when Ramadan mode is enabled)
+  const hasValidationErrors = ramadanMode && (iftarError !== '' || traweehError !== '' || suhoorError !== '');
+
+  // Notify parent component of validation changes
+  React.useEffect(() => {
+    onValidationChange?.(hasValidationErrors);
+  }, [hasValidationErrors, onValidationChange]);
+
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-zinc-900">
       <button
@@ -93,19 +194,26 @@ export default function AdvancedOptions({
                       step={1}
                       min={15}
                       max={60}
-                      value={iftarDuration}
-                      onChange={(e) => {
-                        const value = +e.target.value;
-                        if (value >= 15 && value <= 60) {
-                          setIftarDuration(value);
-                        }
-                      }}
-                      className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                      value={iftarValue}
+                      placeholder="15 - 60"
+                      onChange={(e) => handleIftarChange(e.target.value)}
+                      onBlur={handleIftarBlur}
+                      className={`w-full rounded-md border py-2 ps-3 pe-12 shadow-sm transition focus:ring-1 focus:outline-none dark:bg-zinc-800 dark:text-white ${
+                        iftarError && iftarTouched
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500'
+                          : 'border-gray-300 focus:border-sky-500 focus:ring-sky-500 dark:border-gray-600'
+                      }`}
                     />
                     <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
                       <span className="text-xs text-gray-500 dark:text-gray-400">min</span>
                     </div>
                   </div>
+                  {iftarError && iftarTouched && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                      <ExclamationTriangleIcon className="h-3 w-3" />
+                      <span>{iftarError}</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-200">
@@ -117,19 +225,26 @@ export default function AdvancedOptions({
                       step={1}
                       min={0}
                       max={180}
-                      value={traweehDuration}
-                      onChange={(e) => {
-                        const value = +e.target.value;
-                        if (value >= 0 && value <= 180) {
-                          setTraweehDuration(value);
-                        }
-                      }}
-                      className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                      value={traweehValue}
+                      placeholder="0 - 180"
+                      onChange={(e) => handleTraweehChange(e.target.value)}
+                      onBlur={handleTraweehBlur}
+                      className={`w-full rounded-md border py-2 ps-3 pe-12 shadow-sm transition focus:ring-1 focus:outline-none dark:bg-zinc-800 dark:text-white ${
+                        traweehError && traweehTouched
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500'
+                          : 'border-gray-300 focus:border-sky-500 focus:ring-sky-500 dark:border-gray-600'
+                      }`}
                     />
                     <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
                       <span className="text-xs text-gray-500 dark:text-gray-400">min</span>
                     </div>
                   </div>
+                  {traweehError && traweehTouched && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                      <ExclamationTriangleIcon className="h-3 w-3" />
+                      <span>{traweehError}</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-200">
@@ -141,19 +256,26 @@ export default function AdvancedOptions({
                       step={1}
                       min={0}
                       max={120}
-                      value={suhoorDuration}
-                      onChange={(e) => {
-                        const value = +e.target.value;
-                        if (value >= 0 && value <= 120) {
-                          setSuhoorDuration(value);
-                        }
-                      }}
-                      className="w-full rounded-md border border-gray-300 py-2 ps-3 pe-12 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                      value={suhoorValue}
+                      placeholder="0 - 120"
+                      onChange={(e) => handleSuhoorChange(e.target.value)}
+                      onBlur={handleSuhoorBlur}
+                      className={`w-full rounded-md border py-2 ps-3 pe-12 shadow-sm transition focus:ring-1 focus:outline-none dark:bg-zinc-800 dark:text-white ${
+                        suhoorError && suhoorTouched
+                          ? 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500'
+                          : 'border-gray-300 focus:border-sky-500 focus:ring-sky-500 dark:border-gray-600'
+                      }`}
                     />
                     <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
                       <span className="text-xs text-gray-500 dark:text-gray-400">min</span>
                     </div>
                   </div>
+                  {suhoorError && suhoorTouched && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                      <ExclamationTriangleIcon className="h-3 w-3" />
+                      <span>{suhoorError}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

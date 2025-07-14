@@ -19,6 +19,7 @@ jest.mock('ical-generator', () => {
   const mockIcal = jest.fn().mockReturnValue({
     createEvent: mockCreateEvent,
     toString: jest.fn().mockReturnValue('calendar-content'),
+    x: jest.fn(),
   });
 
   return {
@@ -26,6 +27,9 @@ jest.mock('ical-generator', () => {
     default: mockIcal,
     ICalAlarmType: {
       audio: 'audio',
+    },
+    ICalCalendarMethod: {
+      PUBLISH: 'PUBLISH',
     },
     mockCreateEvent,
   };

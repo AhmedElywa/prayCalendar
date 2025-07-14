@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPrayerTimes } from '../../../prayerTimes';
-import ical, { ICalAlarmType } from 'ical-generator';
+import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
 import moment from 'moment/moment';
+import { translations } from '../../../constants/translations';
 
 /**
  * Generates a cache tag for this request based on all parameters
@@ -143,10 +144,33 @@ export async function GET(request: NextRequest) {
           .filter(Boolean)
       : allEvents;
 
+    // Ensure lang is valid
+    const validLang = ['en', 'ar'].includes(lang) ? lang : 'en';
+    const calendarName = translations[validLang as keyof typeof translations].calendarName;
+
     const calendar = ical({
-      name: lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times',
+      name: calendarName,
       timezone: days[0].meta.timezone,
+      prodId: {
+        company: 'PrayerCalendar',
+        product: 'Prayer Calendar',
+        language: 'EN',
+      },
+      method: ICalCalendarMethod.PUBLISH,
+      scale: 'GREGORIAN',
     });
+
+    // Add additional calendar properties for better calendar app compatibility
+    calendar.x([
+      {
+        key: 'X-WR-CALNAME',
+        value: calendarName,
+      },
+      {
+        key: 'X-WR-TIMEZONE',
+        value: days[0].meta.timezone,
+      },
+    ]);
 
     // Helper function to add alarms to an event
     const addAlarmsToEvent = (event: any, alarmString: string | null) => {

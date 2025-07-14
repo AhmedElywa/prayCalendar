@@ -44,7 +44,7 @@ const CopyText: React.FC<CopyTextProps> = ({ text, copiedText = 'Copied!' }) => 
           type="button"
           aria-label="Copy to clipboard"
           onClick={handleCopy}
-          className="ms-2 flex-shrink-0 rounded-md bg-gray-100 p-2 text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:outline-none dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
+          className="ms-2 flex-shrink-0 rounded-md bg-sky-100 p-2 text-sky-600 transition hover:bg-sky-200 hover:text-sky-700 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:outline-none dark:bg-sky-900/30 dark:text-sky-400 dark:hover:bg-sky-900/50 dark:hover:text-sky-300"
         >
           {copied ? <CheckIcon className="h-5 w-5 text-green-500" /> : <DocumentDuplicateIcon className="h-5 w-5" />}
         </button>
