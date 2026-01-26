@@ -12,15 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        run: bun run build
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -34,12 +25,15 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key" \
             --exclude '.git' \
             --exclude 'node_modules' \
+            --exclude '.next' \
             --exclude '.env.local' \
             ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
 
-      - name: Install dependencies & restart PM2
+      - name: Install, build & restart PM2
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
             cd ${{ secrets.DEPLOY_PATH }} && \
-            bun install --production && \
+            export PATH=\$HOME/.bun/bin:\$PATH && \
+            bun install && \
+            bun run build && \
             pm2 reload prayCalendar --update-env || pm2 start bun --name prayCalendar -- run start"
