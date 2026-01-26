@@ -1,4 +1,3 @@
-import React from 'react';
 import Link from 'next/link';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';

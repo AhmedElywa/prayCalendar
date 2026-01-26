@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState, memo } from 'react';
+import type { FC } from 'react';
 import copy from 'copy-to-clipboard';
 import { DocumentDuplicateIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
@@ -8,8 +9,8 @@ interface CopyTextProps {
   copiedText?: string; // localised "Copied!" message
 }
 
-const CopyText: React.FC<CopyTextProps> = ({ text, copiedText = 'Copied!' }) => {
-  const [copied, setCopied] = React.useState(false);
+const CopyText: FC<CopyTextProps> = ({ text, copiedText = 'Copied!' }) => {
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
     copy(text, { format: 'text/plain' });
@@ -53,4 +54,4 @@ const CopyText: React.FC<CopyTextProps> = ({ text, copiedText = 'Copied!' }) => 
   );
 };
 
-export default React.memo(CopyText);
+export default memo(CopyText);

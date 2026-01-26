@@ -1,5 +1,6 @@
 'use client';
-import React from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { useLanguage, useLocationFields, type Lang } from '../hooks';
 
 interface AppContextValue {
@@ -8,16 +9,16 @@ interface AppContextValue {
   locationFields: ReturnType<typeof useLocationFields>;
 }
 
-const AppContext = React.createContext<AppContextValue | undefined>(undefined);
+const AppContext = createContext<AppContextValue | undefined>(undefined);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children }: { children: ReactNode }) {
   // Always start with 'en' to avoid hydration mismatch
   // The useLanguage hook will handle client-side initialization
   const { lang, setLang } = useLanguage('en');
 
   const locationFields = useLocationFields();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const saved = localStorage.getItem('location');
     if (saved) {
       try {
@@ -34,7 +35,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const { inputMode, address, latitude, longitude } = locationFields;
     localStorage.setItem('location', JSON.stringify({ inputMode, address, latitude, longitude }));
   }, [locationFields.inputMode, locationFields.address, locationFields.latitude, locationFields.longitude]);
@@ -44,7 +45,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAppContext() {
-  const ctx = React.useContext(AppContext);
+  const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useAppContext must be used within AppProvider');
   return ctx;
 }

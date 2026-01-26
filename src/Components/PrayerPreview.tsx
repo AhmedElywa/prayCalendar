@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { BellAlertIcon, ClockIcon, MoonIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { eventNames } from '../constants/prayerData';
 import { translations } from '../constants/translations';
@@ -37,9 +37,9 @@ export default function PrayerPreview({
     return parts.join(' ');
   };
 
-  const [remaining, setRemaining] = React.useState<number | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!nextPrayer) {
       setRemaining(null);
       return;

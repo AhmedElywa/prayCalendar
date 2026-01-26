@@ -1,4 +1,3 @@
-import React from 'react';
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { translations } from '../constants/translations';
 import defaultMethod from './defaultMethod';

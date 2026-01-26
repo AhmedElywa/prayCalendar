@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import CalendarIntegration from '../Components/CalendarIntegration';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
@@ -16,26 +16,26 @@ export default function HomePage() {
   const { lang, locationFields } = useAppContext();
 
   /* ---------- other form state ---------- */
-  const [method, setMethod] = React.useState('5');
-  const [alarms, setAlarms] = React.useState<number[]>([5]);
-  const [duration, setDuration] = React.useState(25);
-  const [months, setMonths] = React.useState(3);
-  const [prayerLanguage, setPrayerLanguage] = React.useState<Lang>(lang); // Default to app language
-  const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [method, setMethod] = useState('5');
+  const [alarms, setAlarms] = useState<number[]>([5]);
+  const [duration, setDuration] = useState(25);
+  const [months, setMonths] = useState(3);
+  const [prayerLanguage, setPrayerLanguage] = useState<Lang>(lang); // Default to app language
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Validation states
-  const [hasValidationErrors, setHasValidationErrors] = React.useState(false);
-  const [methodValidationErrors, setMethodValidationErrors] = React.useState(false);
-  const [advancedValidationErrors, setAdvancedValidationErrors] = React.useState(false);
+  const [hasValidationErrors, setHasValidationErrors] = useState(false);
+  const [methodValidationErrors, setMethodValidationErrors] = useState(false);
+  const [advancedValidationErrors, setAdvancedValidationErrors] = useState(false);
 
   // Combine validation errors from both components
-  React.useEffect(() => {
+  useEffect(() => {
     setHasValidationErrors(methodValidationErrors || advancedValidationErrors);
   }, [methodValidationErrors, advancedValidationErrors]);
 
   // Update prayer language when app language changes (unless user has explicitly set a different prayer language)
-  const [userSetPrayerLanguage, setUserSetPrayerLanguage] = React.useState(false);
-  React.useEffect(() => {
+  const [userSetPrayerLanguage, setUserSetPrayerLanguage] = useState(false);
+  useEffect(() => {
     if (!userSetPrayerLanguage) {
       setPrayerLanguage(lang);
     }
@@ -47,15 +47,15 @@ export default function HomePage() {
   };
 
   /* ---------- Ramadan mode state ---------- */
-  const [ramadanMode, setRamadanMode] = React.useState(false);
-  const [iftarDuration, setIftarDuration] = React.useState(30);
-  const [traweehDuration, setTraweehDuration] = React.useState(60);
-  const [suhoorDuration, setSuhoorDuration] = React.useState(30);
+  const [ramadanMode, setRamadanMode] = useState(false);
+  const [iftarDuration, setIftarDuration] = useState(30);
+  const [traweehDuration, setTraweehDuration] = useState(60);
+  const [suhoorDuration, setSuhoorDuration] = useState(30);
 
   /* ---------- events selection ---------- */
   const alarmOrder = alarmOptionsData.map((o) => o.value);
-  const allEvents = React.useMemo(() => eventNames[lang], [lang]);
-  const [selectedEvents, setSelectedEvents] = React.useState<number[]>(eventNames.en.map((_, i) => i));
+  const allEvents = useMemo(() => eventNames[lang], [lang]);
+  const [selectedEvents, setSelectedEvents] = useState<number[]>(eventNames.en.map((_, i) => i));
 
   const handleAlarmToggle = (v: number) =>
     setAlarms((prev) =>
@@ -69,10 +69,10 @@ export default function HomePage() {
     );
 
   /* ---------- build ICS link ---------- */
-  const [baseUrl, setBaseUrl] = React.useState('');
+  const [baseUrl, setBaseUrl] = useState('');
 
   // Get current domain and protocol from browser
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       setBaseUrl(`${window.location.protocol}//${window.location.host}`);
     }

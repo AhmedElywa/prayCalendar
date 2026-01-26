@@ -1,4 +1,3 @@
-import React from 'react';
 import { translations } from '../constants/translations';
 import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../contexts/AppContext';

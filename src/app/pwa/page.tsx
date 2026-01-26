@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import { useState, useEffect } from 'react';
 import LocationInputs from '../../Components/LocationInputs';
 import PrayerPreview from '../../Components/PrayerPreview';
 import MethodSelect from '../../Components/MethodSelect';
@@ -10,10 +10,10 @@ import { translations } from '../../constants/translations';
 
 export default function PrayApp() {
   const { lang, locationFields } = useAppContext();
-  const [collapsed, setCollapsed] = React.useState(false);
-  const [method, setMethod] = React.useState('5');
+  const [collapsed, setCollapsed] = useState(false);
+  const [method, setMethod] = useState('5');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const savedLoc = localStorage.getItem('location');
     if (savedLoc) setCollapsed(true);
     const savedMethod = localStorage.getItem('pwaMethod');

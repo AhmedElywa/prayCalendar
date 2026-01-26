@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { translations } from '../constants/translations';
 import { alarmOptionsData } from '../constants/prayerData';
 import { ChevronDownIcon, ChevronUpIcon, MoonIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -44,17 +44,17 @@ export default function AdvancedOptions({
   const { lang } = useAppContext();
 
   // Validation states
-  const [iftarError, setIftarError] = React.useState('');
-  const [traweehError, setTraweehError] = React.useState('');
-  const [suhoorError, setSuhoorError] = React.useState('');
-  const [iftarTouched, setIftarTouched] = React.useState(false);
-  const [traweehTouched, setTraweehTouched] = React.useState(false);
-  const [suhoorTouched, setSuhoorTouched] = React.useState(false);
+  const [iftarError, setIftarError] = useState('');
+  const [traweehError, setTraweehError] = useState('');
+  const [suhoorError, setSuhoorError] = useState('');
+  const [iftarTouched, setIftarTouched] = useState(false);
+  const [traweehTouched, setTraweehTouched] = useState(false);
+  const [suhoorTouched, setSuhoorTouched] = useState(false);
 
   // Input values as strings to allow empty state
-  const [iftarValue, setIftarValue] = React.useState(iftarDuration.toString());
-  const [traweehValue, setTraweehValue] = React.useState(traweehDuration.toString());
-  const [suhoorValue, setSuhoorValue] = React.useState(suhoorDuration.toString());
+  const [iftarValue, setIftarValue] = useState(iftarDuration.toString());
+  const [traweehValue, setTraweehValue] = useState(traweehDuration.toString());
+  const [suhoorValue, setSuhoorValue] = useState(suhoorDuration.toString());
 
   // Validation functions
   const validateIftar = (value: string) => {
@@ -137,7 +137,7 @@ export default function AdvancedOptions({
   const hasValidationErrors = ramadanMode && (iftarError !== '' || traweehError !== '' || suhoorError !== '');
 
   // Notify parent component of validation changes
-  React.useEffect(() => {
+  useEffect(() => {
     onValidationChange?.(hasValidationErrors);
   }, [hasValidationErrors, onValidationChange]);
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { translations } from '../constants/translations';
 import { alarmOptionsData } from '../constants/prayerData';
 import {
@@ -75,27 +75,27 @@ export default function MethodAndSettings({
   const { lang } = useAppContext();
 
   // Validation states for main settings
-  const [durationError, setDurationError] = React.useState('');
-  const [monthsError, setMonthsError] = React.useState('');
-  const [durationTouched, setDurationTouched] = React.useState(false);
-  const [monthsTouched, setMonthsTouched] = React.useState(false);
+  const [durationError, setDurationError] = useState('');
+  const [monthsError, setMonthsError] = useState('');
+  const [durationTouched, setDurationTouched] = useState(false);
+  const [monthsTouched, setMonthsTouched] = useState(false);
 
   // Input values as strings to allow empty state
-  const [durationValue, setDurationValue] = React.useState(duration.toString());
-  const [monthsValue, setMonthsValue] = React.useState(months.toString());
+  const [durationValue, setDurationValue] = useState(duration.toString());
+  const [monthsValue, setMonthsValue] = useState(months.toString());
 
   // Advanced options validation states
-  const [iftarError, setIftarError] = React.useState('');
-  const [traweehError, setTraweehError] = React.useState('');
-  const [suhoorError, setSuhoorError] = React.useState('');
-  const [iftarTouched, setIftarTouched] = React.useState(false);
-  const [traweehTouched, setTraweehTouched] = React.useState(false);
-  const [suhoorTouched, setSuhoorTouched] = React.useState(false);
+  const [iftarError, setIftarError] = useState('');
+  const [traweehError, setTraweehError] = useState('');
+  const [suhoorError, setSuhoorError] = useState('');
+  const [iftarTouched, setIftarTouched] = useState(false);
+  const [traweehTouched, setTraweehTouched] = useState(false);
+  const [suhoorTouched, setSuhoorTouched] = useState(false);
 
   // Advanced input values as strings to allow empty state
-  const [iftarValue, setIftarValue] = React.useState(iftarDuration.toString());
-  const [traweehValue, setTraweehValue] = React.useState(traweehDuration.toString());
-  const [suhoorValue, setSuhoorValue] = React.useState(suhoorDuration.toString());
+  const [iftarValue, setIftarValue] = useState(iftarDuration.toString());
+  const [traweehValue, setTraweehValue] = useState(traweehDuration.toString());
+  const [suhoorValue, setSuhoorValue] = useState(suhoorDuration.toString());
 
   // Validation functions
   const validateDuration = (value: string) => {
@@ -230,11 +230,11 @@ export default function MethodAndSettings({
   const hasAdvancedValidationErrors = ramadanMode && (iftarError !== '' || traweehError !== '' || suhoorError !== '');
 
   // Notify parent component of validation changes
-  React.useEffect(() => {
+  useEffect(() => {
     onValidationChange?.(hasValidationErrors);
   }, [hasValidationErrors, onValidationChange]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     onAdvancedValidationChange?.(hasAdvancedValidationErrors);
   }, [hasAdvancedValidationErrors, onAdvancedValidationChange]);
 

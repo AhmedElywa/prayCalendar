@@ -1,11 +1,11 @@
-import React from 'react';
+import { useState } from 'react';
 import { translations } from '../constants/translations';
 import { InformationCircleIcon, DocumentTextIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function InstructionsSection() {
   const { lang } = useAppContext();
-  const [collapsed, setCollapsed] = React.useState(true);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-zinc-900">

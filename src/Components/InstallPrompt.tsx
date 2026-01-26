@@ -1,13 +1,13 @@
 'use client';
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { translations } from '../constants/translations';
 
 export default function InstallPrompt() {
   const { lang } = useAppContext();
-  const [visible, setVisible] = React.useState(false);
+  const [visible, setVisible] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const dismissed = localStorage.getItem('installPromptDismissed');
     if (!dismissed) {
       setVisible(true);

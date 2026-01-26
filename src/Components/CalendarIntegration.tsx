@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { translations } from '../constants/translations';
 import {
   ChevronDownIcon,
@@ -20,8 +20,8 @@ interface CalendarIntegrationProps {
 
 export default function CalendarIntegration({ link, hasValidationErrors = false }: CalendarIntegrationProps) {
   const { lang, locationFields } = useAppContext();
-  const [showManual, setShowManual] = React.useState(false);
-  const [copied, setCopied] = React.useState(false);
+  const [showManual, setShowManual] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
     copy(link);

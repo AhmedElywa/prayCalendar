@@ -1,4 +1,3 @@
-import React from 'react';
 import ThemeMenu from './Theme';
 import { translations } from '../constants/translations';
 import { GlobeAltIcon, CodeBracketIcon, UserCircleIcon } from '@heroicons/react/24/outline';
