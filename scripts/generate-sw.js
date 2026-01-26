@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const { VERCEL_DEPLOYMENT_ID, VERCEL_GIT_COMMIT_SHA, VERCEL_GIT_COMMIT_REF } = process.env;
 

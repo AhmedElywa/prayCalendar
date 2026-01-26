@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import LocationInputs from '../../Components/LocationInputs';
-import PrayerPreview from '../../Components/PrayerPreview';
 import MethodSelect from '../../Components/MethodSelect';
 import PageLayout from '../../Components/PageLayout';
+import PrayerPreview from '../../Components/PrayerPreview';
+import { translations } from '../../constants/translations';
 import { useAppContext } from '../../contexts/AppContext';
 import { useTimingsPreview } from '../../hooks';
-import { translations } from '../../constants/translations';
 
 export default function PrayApp() {
   const { lang, locationFields } = useAppContext();

@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom';
 
 // Polyfills for Next.js App Router testing
-import { TextEncoder, TextDecoder } from 'util';
+import { TextDecoder, TextEncoder } from 'node:util';
 
 // Add Web API polyfills
 global.TextEncoder = TextEncoder;

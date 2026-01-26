@@ -1,6 +1,6 @@
+import { ChevronDownIcon, ChevronUpIcon, DocumentTextIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { translations } from '../constants/translations';
-import { InformationCircleIcon, DocumentTextIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function InstructionsSection() {

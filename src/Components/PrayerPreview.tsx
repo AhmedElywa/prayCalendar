@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { BellAlertIcon, ClockIcon, MoonIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { BellAlertIcon, ClockIcon, MapPinIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import { eventNames } from '../constants/prayerData';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';

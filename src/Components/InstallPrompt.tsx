@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useAppContext } from '../contexts/AppContext';
+import { useEffect, useState } from 'react';
 import { translations } from '../constants/translations';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function InstallPrompt() {
   const { lang } = useAppContext();

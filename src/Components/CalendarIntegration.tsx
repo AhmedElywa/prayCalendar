@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { translations } from '../constants/translations';
 import {
+  CalendarDaysIcon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CalendarDaysIcon,
   DocumentDuplicateIcon,
-  CheckIcon,
-  MapPinIcon,
   ExclamationTriangleIcon,
+  MapPinIcon,
 } from '@heroicons/react/24/outline';
+import copy from 'copy-to-clipboard';
+import { useState } from 'react';
+import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 import InstructionsSection from './InstructionsSection';
-import copy from 'copy-to-clipboard';
 
 interface CalendarIntegrationProps {
   link: string;
@@ -31,7 +31,7 @@ export default function CalendarIntegration({ link, hasValidationErrors = false 
 
   const handleCalendarClick = (calendarType: string) => {
     // Use webcal:// protocol for native calendar apps
-    let webcalUrl = link.replace('https://', 'webcal://');
+    const webcalUrl = link.replace('https://', 'webcal://');
     let calendarUrl = '';
     switch (calendarType) {
       case 'device': {

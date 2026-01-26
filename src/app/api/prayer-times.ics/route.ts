@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getPrayerTimes } from '../../../prayerTimes';
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
 import moment from 'moment/moment';
+import { type NextRequest, NextResponse } from 'next/server';
 import { translations } from '../../../constants/translations';
+import { getPrayerTimes } from '../../../prayerTimes';
 
 /**
  * Generates a cache tag for this request based on all parameters
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
   let monthsCount = 3;
   if (months !== null) {
     const parsed = parseInt(months, 10);
-    if (!isNaN(parsed)) {
+    if (!Number.isNaN(parsed)) {
       monthsCount = Math.min(Math.max(parsed, 1), 11);
     }
     allRequestParams.months = monthsCount.toString();
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
       const alarmValues = alarmString
         .split(',')
         .map((a) => parseInt(a, 10))
-        .filter((a) => !isNaN(a));
+        .filter((a) => !Number.isNaN(a));
 
       for (const a of alarmValues) {
         if (a > 0) {
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest) {
         if (!allowedEvents.includes(name)) continue;
 
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
-        let eventDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
+        const eventDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
 
         // Keep original prayer durations even in Ramadan mode
         // We'll create separate events for Iftar and Tarawih below
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
             const suhoorEvent = calendar.createEvent({
               start: suhoorStartDate,
               end: startDate,
-              summary: lang === 'ar' ? arabicNames['Suhoor'] : 'Suhoor',
+              summary: lang === 'ar' ? arabicNames.Suhoor : 'Suhoor',
               timezone: day.meta.timezone,
             });
 
@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
             const iftarEvent = calendar.createEvent({
               start: iftarStartDate,
               end: moment(iftarStartDate).add(iftarDuration, 'minute').toDate(),
-              summary: lang === 'ar' ? arabicNames['Iftar'] : 'Iftar',
+              summary: lang === 'ar' ? arabicNames.Iftar : 'Iftar',
               timezone: day.meta.timezone,
             });
 
@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
             const tarawihEvent = calendar.createEvent({
               start: tarawihStartDate,
               end: moment(tarawihStartDate).add(traweehDuration, 'minute').toDate(),
-              summary: lang === 'ar' ? arabicNames['Tarawih'] : 'Tarawih',
+              summary: lang === 'ar' ? arabicNames.Tarawih : 'Tarawih',
               timezone: day.meta.timezone,
             });
 

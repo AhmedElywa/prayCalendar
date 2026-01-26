@@ -1,7 +1,7 @@
 'use client';
-import { createContext, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { useLanguage, useLocationFields, type Lang } from '../hooks';
+import { createContext, useContext, useEffect } from 'react';
+import { type Lang, useLanguage, useLocationFields } from '../hooks';
 
 interface AppContextValue {
   lang: Lang;
@@ -33,12 +33,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       } catch {}
     }
-  }, []);
+  }, [locationFields.setAddress, locationFields.setInputMode, locationFields.setLatitude, locationFields.setLongitude]);
 
   useEffect(() => {
     const { inputMode, address, latitude, longitude } = locationFields;
     localStorage.setItem('location', JSON.stringify({ inputMode, address, latitude, longitude }));
-  }, [locationFields.inputMode, locationFields.address, locationFields.latitude, locationFields.longitude]);
+  }, [
+    locationFields.inputMode,
+    locationFields.address,
+    locationFields.latitude,
+    locationFields.longitude,
+    locationFields,
+  ]);
 
   const value = { lang, setLang, locationFields };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -106,7 +106,7 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
     } finally {
       setLoading(false);
     }
-  }, [inputMode, address, latitude, longitude, method, lang]);
+  }, [inputMode, address, latitude, longitude, method, deps]);
 
   React.useEffect(() => {
     fetchToday();

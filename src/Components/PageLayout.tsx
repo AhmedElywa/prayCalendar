@@ -1,8 +1,8 @@
 'use client';
 import type { ReactNode } from 'react';
-import Navigation from './Navigation';
 import Footer from './Footer';
 import InstallPrompt from './InstallPrompt';
+import Navigation from './Navigation';
 
 export default function PageLayout({ children }: { children: ReactNode }) {
   return (

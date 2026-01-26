@@ -1,5 +1,5 @@
 import moment from 'moment/moment';
-import { cacheMonitor, estimateCacheSize, checkCacheHealth, isValidCacheKey } from './utils/cacheUtils';
+import { cacheMonitor, checkCacheHealth, estimateCacheSize, isValidCacheKey } from './utils/cacheUtils';
 
 /* ------------------------------------------------------------------ */
 /*  Types from AlAdhan "calendar" endpoint --------------------------- */
@@ -100,7 +100,7 @@ type Response = {
 
 function isEnumValue<T extends number>(value: any, min: T, max: T): value is T {
   const num = Number(value);
-  return !isNaN(num) && num >= min && num <= max;
+  return !Number.isNaN(num) && num >= min && num <= max;
 }
 
 function toMethod(value: any): Params['method'] {
@@ -240,7 +240,7 @@ export async function getPrayerTimes(
   if (cachedEntry && isCacheValid(cachedEntry)) {
     cacheMonitor.recordHit();
     console.log('Cache hit for prayer times:', {
-      cacheKey: cacheKey.substring(0, 100) + '...',
+      cacheKey: `${cacheKey.substring(0, 100)}...`,
       age: Date.now() - cachedEntry.timestamp,
       cacheSize: estimateCacheSize(prayerTimesCache),
     });
@@ -266,7 +266,7 @@ export async function getPrayerTimes(
   try {
     cacheMonitor.recordMiss();
     console.log('Cache miss, fetching from AlAdhan API:', {
-      cacheKey: cacheKey.substring(0, 100) + '...',
+      cacheKey: `${cacheKey.substring(0, 100)}...`,
       url: baseUrl,
       cacheSize: estimateCacheSize(prayerTimesCache),
       cacheStats: cacheMonitor.getStats(),
@@ -327,7 +327,7 @@ export async function getPrayerTimes(
         }
 
         console.log('Successfully cached prayer times:', {
-          cacheKey: cacheKey.substring(0, 100) + '...',
+          cacheKey: `${cacheKey.substring(0, 100)}...`,
           dataPoints: data.data.length,
           timezone,
           newCacheSize: estimateCacheSize(prayerTimesCache),
@@ -356,7 +356,7 @@ export async function getPrayerTimes(
         }
 
         // Exponential backoff: wait 1s, 2s, 4s between retries
-        const delayMs = Math.pow(2, attempt - 1) * 1000;
+        const delayMs = 2 ** (attempt - 1) * 1000;
         console.log(`Waiting ${delayMs}ms before retry...`);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }

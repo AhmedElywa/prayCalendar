@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { translations } from '../constants/translations';
+import { ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import { alarmOptionsData } from '../constants/prayerData';
-import { ChevronDownIcon, ChevronUpIcon, MoonIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 
 interface AdvancedOptionsProps {
@@ -60,7 +60,7 @@ export default function AdvancedOptions({
   const validateIftar = (value: string) => {
     if (value === '') return translations[lang].iftarRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 15 || num > 60) {
+    if (Number.isNaN(num) || num < 15 || num > 60) {
       return translations[lang].iftarInvalid;
     }
     return '';
@@ -69,7 +69,7 @@ export default function AdvancedOptions({
   const validateTraweeh = (value: string) => {
     if (value === '') return translations[lang].traweehRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 0 || num > 180) {
+    if (Number.isNaN(num) || num < 0 || num > 180) {
       return translations[lang].traweehInvalid;
     }
     return '';
@@ -78,7 +78,7 @@ export default function AdvancedOptions({
   const validateSuhoor = (value: string) => {
     if (value === '') return translations[lang].suhoorRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 0 || num > 120) {
+    if (Number.isNaN(num) || num < 0 || num > 120) {
       return translations[lang].suhoorInvalid;
     }
     return '';

@@ -1,7 +1,7 @@
 import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { translations } from '../constants/translations';
-import defaultMethod from './defaultMethod';
 import { useAppContext } from '../contexts/AppContext';
+import defaultMethod from './defaultMethod';
 
 export interface MethodSelectProps {
   method: string;

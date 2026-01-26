@@ -1,5 +1,5 @@
-import { translations } from '../constants/translations';
 import { MapIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 
 export default function LocationInputs() {

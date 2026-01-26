@@ -1,6 +1,6 @@
-import { NextRequest } from 'next/server';
-import { GET } from '../../../../app/api/prayer-times.ics/route';
 import { getPrayerTimes } from 'prayerTimes';
+import type { NextRequest } from 'next/server';
+import { GET } from '../../../../app/api/prayer-times.ics/route';
 
 // Get the mock functions
 const { mockCreateEvent } = jest.requireMock('ical-generator');

@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
-import { translations } from '../constants/translations';
-import { alarmOptionsData } from '../constants/prayerData';
 import {
   CalendarDaysIcon,
-  ClockIcon,
-  GlobeAltIcon,
-  ExclamationTriangleIcon,
-  HeartIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  GlobeAltIcon,
+  HeartIcon,
   MoonIcon,
 } from '@heroicons/react/24/outline';
-import { MethodSelectFields } from './MethodSelect';
+import { useEffect, useState } from 'react';
+import { alarmOptionsData } from '../constants/prayerData';
+import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 import type { Lang } from '../hooks/useLanguage';
+import { MethodSelectFields } from './MethodSelect';
 
 interface MethodAndSettingsProps {
   method: string;
@@ -101,7 +101,7 @@ export default function MethodAndSettings({
   const validateDuration = (value: string) => {
     if (value === '') return translations[lang].durationRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 5 || num > 60) {
+    if (Number.isNaN(num) || num < 5 || num > 60) {
       return translations[lang].durationInvalid;
     }
     return '';
@@ -110,7 +110,7 @@ export default function MethodAndSettings({
   const validateMonths = (value: string) => {
     if (value === '') return translations[lang].monthsRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 1 || num > 11) {
+    if (Number.isNaN(num) || num < 1 || num > 11) {
       return translations[lang].monthsInvalid;
     }
     return '';
@@ -119,7 +119,7 @@ export default function MethodAndSettings({
   const validateIftar = (value: string) => {
     if (value === '') return translations[lang].iftarRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 15 || num > 60) {
+    if (Number.isNaN(num) || num < 15 || num > 60) {
       return translations[lang].iftarInvalid;
     }
     return '';
@@ -128,7 +128,7 @@ export default function MethodAndSettings({
   const validateTraweeh = (value: string) => {
     if (value === '') return translations[lang].traweehRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 0 || num > 180) {
+    if (Number.isNaN(num) || num < 0 || num > 180) {
       return translations[lang].traweehInvalid;
     }
     return '';
@@ -137,7 +137,7 @@ export default function MethodAndSettings({
   const validateSuhoor = (value: string) => {
     if (value === '') return translations[lang].suhoorRequired;
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < 0 || num > 120) {
+    if (Number.isNaN(num) || num < 0 || num > 120) {
       return translations[lang].suhoorInvalid;
     }
     return '';

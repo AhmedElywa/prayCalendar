@@ -1,8 +1,8 @@
-import { useState, memo } from 'react';
-import type { FC } from 'react';
-import copy from 'copy-to-clipboard';
-import { DocumentDuplicateIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { Transition } from '@headlessui/react';
+import { CheckIcon, DocumentDuplicateIcon } from '@heroicons/react/24/solid';
+import copy from 'copy-to-clipboard';
+import type { FC } from 'react';
+import { memo, useState } from 'react';
 
 interface CopyTextProps {
   text: string;

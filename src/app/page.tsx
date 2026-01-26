@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CalendarIntegration from '../Components/CalendarIntegration';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
-import PrayerPreview from '../Components/PrayerPreview';
 import PageLayout from '../Components/PageLayout';
+import PrayerPreview from '../Components/PrayerPreview';
+import { alarmOptionsData, eventNames } from '../constants/prayerData';
+import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 import { useTimingsPreview } from '../hooks';
-import { translations } from '../constants/translations';
-import { eventNames, alarmOptionsData } from '../constants/prayerData';
 import type { Lang } from '../hooks/useLanguage';
 
 export default function HomePage() {

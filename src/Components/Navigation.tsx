@@ -1,8 +1,8 @@
-import ThemeMenu from './Theme';
+import { CodeBracketIcon, GlobeAltIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { translations } from '../constants/translations';
-import { GlobeAltIcon, CodeBracketIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../contexts/AppContext';
 import type { Lang } from '../hooks/useLanguage';
+import ThemeMenu from './Theme';
 
 export default function Navigation() {
   const { lang, setLang } = useAppContext();

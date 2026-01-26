@@ -1,6 +1,7 @@
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
-import React, { Fragment, useEffect, useState } from 'react';
 import { ComputerDesktopIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import type React from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { classNames } from '../utils';
 
 type Theme = 'Dark' | 'Light' | 'System';
@@ -38,7 +39,7 @@ const ThemeMenu: React.FC = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [theme, systemTheme, dark]);
+  }, [theme, dark]);
 
   const themes: { name: Theme; icon: typeof ComputerDesktopIcon }[] = [
     {

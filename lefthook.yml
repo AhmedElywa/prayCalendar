@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    biome:
+      glob: "*.{js,ts,tsx,json}"
+      run: bun biome check --staged --write --no-errors-on-unmatched
+      stage_fixed: true
