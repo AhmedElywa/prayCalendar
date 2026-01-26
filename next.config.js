@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // App Router is the default in Next.js 13.4+
+  output: 'standalone',
 };
 
 module.exports = nextConfig;
