@@ -42,4 +42,4 @@ jobs:
           ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
             cd ${{ secrets.DEPLOY_PATH }} && \
             bun install --production && \
-            pm2 reload prayCalendar --update-env || pm2 start npm --name prayCalendar -- start"
+            pm2 reload prayCalendar --update-env || pm2 start bun --name prayCalendar -- run start"
