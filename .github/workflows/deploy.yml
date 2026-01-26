@@ -36,4 +36,5 @@ jobs:
             export PATH=\$HOME/.bun/bin:\$PATH && \
             bun install && \
             bun run build && \
-            pm2 reload prayCalendar --update-env || pm2 start bun --name prayCalendar -- run start"
+            pm2 delete prayCalendar 2>/dev/null || true && \
+            PORT=3001 pm2 start bun --name prayCalendar -- run start"
