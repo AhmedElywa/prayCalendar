@@ -7,7 +7,7 @@
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "files": {
-    "includes": ["**", "!**/node_modules", "!**/dist", "!**/.next", "!**/*.css"]
+    "includes": ["**", "!**/node_modules", "!**/dist", "!**/.next", "!**/*.css", "!**/next-env.d.ts"]
   },
   "formatter": {
     "enabled": true,
