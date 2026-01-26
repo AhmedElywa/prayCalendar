@@ -32,7 +32,7 @@ function isPreviewCacheValid(entry: { timestamp: number }): boolean {
 
 /** fetch next‑prayer & today's timetable */
 export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
-  const { inputMode, address, latitude, longitude, method, lang } = deps;
+  const { inputMode, address, latitude, longitude, method } = deps;
   const [loading, setLoading] = React.useState(false);
   const [nextPrayer, setNextPrayer] = React.useState<{ name: string; time: number } | null>(null);
   const [todayTimings, setTodayTimings] = React.useState<Record<string, string> | null>(null);
