@@ -31,17 +31,17 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p 1993 -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy standalone to server
         run: |
           rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key" \
+            -e "ssh -i ~/.ssh/deploy_key -p 1993" \
             .next/standalone/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
 
       - name: Restart PM2
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
+          ssh -i ~/.ssh/deploy_key -p 1993 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
             cd ${{ secrets.DEPLOY_PATH }} && \
             pm2 delete prayCalendar 2>/dev/null || true && \
             PORT=3001 pm2 start server.js --name prayCalendar"
