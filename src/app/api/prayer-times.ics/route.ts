@@ -1,6 +1,6 @@
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
 import { logger } from 'lib/axiom/server';
-import moment from 'moment/moment';
+import moment from 'moment-timezone';
 import { type NextRequest, NextResponse } from 'next/server';
 import { translations } from '../../../constants/translations';
 import { getPrayerTimes } from '../../../prayerTimes';
@@ -193,8 +193,9 @@ export async function GET(request: NextRequest) {
       }
     };
 
+    const userTimezone = days[0].meta.timezone;
     for (const day of days) {
-      if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment(), 'day')) continue;
+      if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment.utc().tz(userTimezone), 'day')) continue;
 
       // Check if current day is in Ramadan for Ramadan mode
       const isRamadanDay = ramadanMode && isRamadan(day);

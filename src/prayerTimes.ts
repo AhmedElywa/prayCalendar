@@ -148,7 +148,9 @@ export async function getPrayerTimes(
   };
 
   /* ----------------------------- range build ----------------------- */
-  const start = moment().startOf('day').format('DD-MM-YYYY');
+  // Subtract 1 day to account for timezone differences between server (UTC)
+  // and user's local time — ensures "today" is always included in the response.
+  const start = moment().subtract(1, 'day').format('DD-MM-YYYY');
   const end = moment()
     .add(monthsCount - 1, 'month')
     .endOf('month')
