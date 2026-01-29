@@ -21,8 +21,8 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          NEXT_PUBLIC_AXIOM_DATASET: ${{ secrets.NEXT_PUBLIC_AXIOM_DATASET }}
-          NEXT_PUBLIC_AXIOM_TOKEN: ${{ secrets.NEXT_PUBLIC_AXIOM_TOKEN }}
+          AXIOM_DATASET: ${{ secrets.AXIOM_DATASET }}
+          AXIOM_TOKEN: ${{ secrets.AXIOM_TOKEN }}
 
       - name: Prepare standalone output
         run: |
@@ -47,6 +47,6 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p 1993 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
             cd ${{ secrets.DEPLOY_PATH }} && \
             pm2 delete prayCalendar 2>/dev/null || true && \
-            NEXT_PUBLIC_AXIOM_DATASET=${{ secrets.NEXT_PUBLIC_AXIOM_DATASET }} \
-            NEXT_PUBLIC_AXIOM_TOKEN=${{ secrets.NEXT_PUBLIC_AXIOM_TOKEN }} \
+            AXIOM_DATASET=${{ secrets.AXIOM_DATASET }} \
+            AXIOM_TOKEN=${{ secrets.AXIOM_TOKEN }} \
             PORT=3001 pm2 start server.js --name prayCalendar"
