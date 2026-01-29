@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "next start --port ${PORT-3000}",
-    "dev": "next",
+    "dev": "next dev --hostname 0.0.0.0 --port 3300",
     "generate-sw": "bun scripts/generate-sw.js",
     "build": "bun run generate-sw && next build",
     "test": "jest",
@@ -19,6 +19,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@axiomhq/js": "^1.4.0",
+    "@axiomhq/logging": "^0.2.0",
+    "@axiomhq/nextjs": "^0.2.0",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.1.5",
     "@vercel/analytics": "^1.6.1",

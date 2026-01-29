@@ -1,4 +1,5 @@
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
+import { logger } from 'lib/axiom/server';
 import moment from 'moment/moment';
 import { type NextRequest, NextResponse } from 'next/server';
 import { translations } from '../../../constants/translations';
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
   try {
     // Fetch calendar data – now accepts address OR latitude/longitude
     // Pass all request parameters for comprehensive cache key generation
-    const days = await getPrayerTimes(queryParams, monthsCount, allRequestParams);
+    const days = await getPrayerTimes(queryParams, monthsCount);
     if (!days) {
       return NextResponse.json({ message: 'Invalid address or coordinates' }, { status: 400 });
     }
@@ -269,13 +270,16 @@ export async function GET(request: NextRequest) {
       ', ',
     );
 
-    console.log('Generated prayer times calendar:', {
+    const log = logger.with({ source: 'prayer-times.ics' });
+    log.info('Generated prayer times calendar', {
       location: queryParams.address || `${queryParams.latitude},${queryParams.longitude}`,
       events: allowedEvents.length,
       days: days.length,
-      cacheTag,
-      cacheControl,
+      months: monthsCount,
+      lang,
+      ramadanMode,
     });
+    await logger.flush();
 
     return new NextResponse(calendar.toString(), {
       headers: {
