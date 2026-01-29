@@ -47,6 +47,6 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p 1993 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
             cd ${{ secrets.DEPLOY_PATH }} && \
             pm2 delete prayCalendar 2>/dev/null || true && \
-            AXIOM_DATASET=${{ secrets.AXIOM_DATASET }} \
-            AXIOM_TOKEN=${{ secrets.AXIOM_TOKEN }} \
-            PORT=3001 pm2 start server.js --name prayCalendar"
+            AXIOM_DATASET='${{ secrets.AXIOM_DATASET }}' \
+            AXIOM_TOKEN='${{ secrets.AXIOM_TOKEN }}' \
+            PORT=3001 pm2 start server.js --name prayCalendar --update-env"
