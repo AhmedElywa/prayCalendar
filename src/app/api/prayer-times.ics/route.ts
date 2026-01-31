@@ -124,8 +124,12 @@ export async function GET(request: NextRequest) {
       );
 
       const log = logger.with({ source: 'prayer-times.ics' });
-      log.info('L2 cache hit', {
+      log.info('cache', {
+        l2: 'hit',
         location: allRequestParams.address || `${allRequestParams.latitude},${allRequestParams.longitude}`,
+        method: allRequestParams.method,
+        months: monthsCount,
+        lang,
       });
       await logger.flush();
 
@@ -302,7 +306,8 @@ export async function GET(request: NextRequest) {
     );
 
     const log = logger.with({ source: 'prayer-times.ics' });
-    log.info('Generated prayer times calendar', {
+    log.info('cache', {
+      l2: 'miss',
       location: queryParams.address || `${queryParams.latitude},${queryParams.longitude}`,
       events: allowedEvents.length,
       days: days.length,

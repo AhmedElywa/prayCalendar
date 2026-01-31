@@ -269,11 +269,14 @@ export async function getPrayerTimes(
 
   const { cached, missing } = await getCachedMonths(location, method, school, neededMonths);
 
-  log.info('L1 cache check', {
-    neededMonths: neededMonths.length,
-    cachedMonths: cached.size,
-    missingMonths: missing.length,
+  log.info('cache', {
+    l1: missing.length === 0 ? 'hit' : cached.size === 0 ? 'miss' : 'partial',
+    l1_total: neededMonths.length,
+    l1_cached: cached.size,
+    l1_missing: missing.length,
     location,
+    method,
+    school,
   });
 
   /* ---- fetch missing months ---- */
