@@ -26,7 +26,7 @@ function prayerDataKey(location: string, method: number, school: number, yearMon
 }
 
 function icsKey(allParams: Record<string, string>): string {
-  const date = moment().format('YYYY-MM-DD');
+  const month = moment().format('YYYY-MM');
   const sorted = Object.keys(allParams)
     .sort()
     .reduce(
@@ -37,7 +37,7 @@ function icsKey(allParams: Record<string, string>): string {
       {} as Record<string, string>,
     );
   const hash = createHash('sha256').update(JSON.stringify(sorted)).digest('hex').slice(0, 16);
-  return `ics:${hash}:${date}`;
+  return `ics:${hash}:${month}`;
 }
 
 /* ---- L1: Prayer data per month ---- */
@@ -103,9 +103,7 @@ export async function setCachedICS(allParams: Record<string, string>, icsString:
   const redis = await getRedis();
   if (!redis) return;
   try {
-    const midnight = moment().add(1, 'day').startOf('day');
-    const ttl = Math.max(midnight.diff(moment(), 'seconds'), 60);
-    await redis.set(icsKey(allParams), icsString, { EX: ttl });
+    await redis.set(icsKey(allParams), icsString, { EX: L1_TTL });
   } catch {
     /* skip */
   }
