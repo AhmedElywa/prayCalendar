@@ -1,5 +1,6 @@
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
 import { logger } from 'lib/axiom/server';
+import { getCachedICS, setCachedICS } from 'lib/cache';
 import moment from 'moment-timezone';
 import { type NextRequest, NextResponse } from 'next/server';
 import { translations } from '../../../constants/translations';
@@ -113,8 +114,37 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // L2 cache: check for cached ICS string
+    const cachedIcs = await getCachedICS(allRequestParams);
+    if (cachedIcs) {
+      const { maxAge, swr } = calculateCacheDuration();
+      const cacheTag = generateCacheTag(allRequestParams);
+      const cacheControl = [`s-maxage=${maxAge}`, `stale-while-revalidate=${swr}`, 'public', 'must-revalidate'].join(
+        ', ',
+      );
+
+      const log = logger.with({ source: 'prayer-times.ics' });
+      log.info('L2 cache hit', {
+        location: allRequestParams.address || `${allRequestParams.latitude},${allRequestParams.longitude}`,
+      });
+      await logger.flush();
+
+      return new NextResponse(cachedIcs, {
+        headers: {
+          'Content-Type': 'text/calendar; charset=utf-8',
+          'Cache-Control': cacheControl,
+          'Cache-Tag': cacheTag,
+          Vary: 'Accept-Encoding',
+          ETag: `"${Buffer.from(cacheTag).toString('base64')}"`,
+          'Last-Modified': moment().startOf('day').utc().format('ddd, DD MMM YYYY HH:mm:ss [GMT]'),
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
+    }
+
     // Fetch calendar data – now accepts address OR latitude/longitude
-    // Pass all request parameters for comprehensive cache key generation
     const days = await getPrayerTimes(queryParams, monthsCount);
     if (!days) {
       return NextResponse.json({ message: 'Invalid address or coordinates' }, { status: 400 });
@@ -282,7 +312,12 @@ export async function GET(request: NextRequest) {
     });
     await logger.flush();
 
-    return new NextResponse(calendar.toString(), {
+    const icsString = calendar.toString();
+
+    // Store in L2 cache (fire-and-forget)
+    setCachedICS(allRequestParams, icsString);
+
+    return new NextResponse(icsString, {
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',
         'Cache-Control': cacheControl,

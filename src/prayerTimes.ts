@@ -1,4 +1,5 @@
 import { logger } from 'lib/axiom/server';
+import { getCachedMonths, normalizeLocation, setCachedMonth } from 'lib/cache';
 import moment from 'moment/moment';
 
 /* ------------------------------------------------------------------ */
@@ -117,51 +118,19 @@ function toLatitudeAdjustmentMethod(value: any): Params['latitudeAdjustmentMetho
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main helper exposed to the API route                              */
+/*  Fetch a single date range from AlAdhan API                        */
 /* ------------------------------------------------------------------ */
 
-/**
- * Fetches prayer-time calendar for a span of months starting today.
- * Uses address-based or coordinate-based "from / to" endpoints to minimise
- * network round-trips (1 request vs 12).
- *
- * @param params      Raw query object from API route
- * @param monthsCount Span in months (defaults to 3)
- */
-export async function getPrayerTimes(
-  params: Record<keyof Params, string>,
-  monthsCount: number = 3,
-): Promise<Response['data'] | undefined> {
-  /* ----------------------------- coercion -------------------------- */
-  const convertedParams: Params = {
-    ...params,
-    latitude: params.latitude ? Number(params.latitude) : undefined,
-    longitude: params.longitude ? Number(params.longitude) : undefined,
-    method: toMethod(params.method),
-    annual: params.annual === 'true',
-    shafaq: (params.shafaq as Params['shafaq']) || 'general',
-    school: toSchool(params.school),
-    midnightMode: toMidnightMode(params.midnightMode),
-    latitudeAdjustmentMethod: toLatitudeAdjustmentMethod(params.latitudeAdjustmentMethod),
-    adjustment: params.adjustment ? Number(params.adjustment) : 0,
-    iso8601: params.iso8601 === 'true',
-  };
-
-  /* ----------------------------- range build ----------------------- */
-  // Subtract 1 day to account for timezone differences between server (UTC)
-  // and user's local time — ensures "today" is always included in the response.
-  const start = moment().subtract(1, 'day').format('DD-MM-YYYY');
-  const end = moment()
-    .add(monthsCount - 1, 'month')
-    .endOf('month')
-    .format('DD-MM-YYYY');
-
+async function fetchRange(
+  convertedParams: Params,
+  start: string,
+  end: string,
+  log: ReturnType<typeof logger.with>,
+): Promise<Day[]> {
   const baseUrl = convertedParams.address
     ? `https://api.aladhan.com/v1/calendarByAddress/from/${start}/to/${end}`
     : `https://api.aladhan.com/v1/calendar/from/${start}/to/${end}`;
 
-  /* ----------------------------- fetch with retries ---------------- */
-  const log = logger.with({ source: 'prayerTimes' });
   const url = new URL(baseUrl);
   Object.entries(convertedParams).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
@@ -209,7 +178,6 @@ export async function getPrayerTimes(
         latitude: convertedParams.latitude,
         longitude: convertedParams.longitude,
       });
-      await logger.flush();
 
       return data.data;
     } catch (error) {
@@ -223,9 +191,146 @@ export async function getPrayerTimes(
     }
   }
 
-  log.error('Failed to fetch prayer times after all retries', {
-    error: lastError?.message,
-    durationMs: Date.now() - fetchStart,
+  throw lastError || new Error('Failed to fetch prayer times');
+}
+
+/* ------------------------------------------------------------------ */
+/*  Group months into contiguous ranges for minimal API calls          */
+/* ------------------------------------------------------------------ */
+
+function groupContiguousMonths(months: string[]): { start: string; end: string }[] {
+  if (months.length === 0) return [];
+
+  const sorted = [...months].sort();
+  const ranges: { start: string; end: string }[] = [];
+  let rangeStart = sorted[0];
+  let prev = sorted[0];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const expected = moment(prev, 'YYYY-MM').add(1, 'month').format('YYYY-MM');
+    if (sorted[i] === expected) {
+      prev = sorted[i];
+    } else {
+      ranges.push({ start: rangeStart, end: prev });
+      rangeStart = sorted[i];
+      prev = sorted[i];
+    }
+  }
+  ranges.push({ start: rangeStart, end: prev });
+  return ranges;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main helper exposed to the API route                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Fetches prayer-time calendar for a span of months starting today.
+ * Uses L1 Redis cache per month — only fetches missing months from AlAdhan.
+ */
+export async function getPrayerTimes(
+  params: Record<keyof Params, string>,
+  monthsCount: number = 3,
+): Promise<Response['data'] | undefined> {
+  /* ----------------------------- coercion -------------------------- */
+  const convertedParams: Params = {
+    ...params,
+    latitude: params.latitude ? Number(params.latitude) : undefined,
+    longitude: params.longitude ? Number(params.longitude) : undefined,
+    method: toMethod(params.method),
+    annual: params.annual === 'true',
+    shafaq: (params.shafaq as Params['shafaq']) || 'general',
+    school: toSchool(params.school),
+    midnightMode: toMidnightMode(params.midnightMode),
+    latitudeAdjustmentMethod: toLatitudeAdjustmentMethod(params.latitudeAdjustmentMethod),
+    adjustment: params.adjustment ? Number(params.adjustment) : 0,
+    iso8601: params.iso8601 === 'true',
+  };
+
+  const log = logger.with({ source: 'prayerTimes' });
+
+  /* ---- determine needed months ---- */
+  const startMoment = moment().subtract(1, 'day');
+  const endMoment = moment()
+    .add(monthsCount - 1, 'month')
+    .endOf('month');
+
+  const neededMonths: string[] = [];
+  const cursor = startMoment.clone().startOf('month');
+  while (cursor.isSameOrBefore(endMoment, 'month')) {
+    neededMonths.push(cursor.format('YYYY-MM'));
+    cursor.add(1, 'month');
+  }
+
+  /* ---- check L1 cache ---- */
+  const location = normalizeLocation(params);
+  const method = convertedParams.method;
+  const school = convertedParams.school;
+
+  const { cached, missing } = await getCachedMonths(location, method, school, neededMonths);
+
+  log.info('L1 cache check', {
+    neededMonths: neededMonths.length,
+    cachedMonths: cached.size,
+    missingMonths: missing.length,
+    location,
   });
-  await log.flush();
+
+  /* ---- fetch missing months ---- */
+  if (missing.length > 0) {
+    const ranges = groupContiguousMonths(missing);
+
+    for (const range of ranges) {
+      const rangeStart = moment(range.start, 'YYYY-MM').startOf('month');
+      const rangeEnd = moment(range.end, 'YYYY-MM').endOf('month');
+
+      // Use the same 1-day-early trick for the first range if it includes today's month
+      const fetchStart =
+        range.start === neededMonths[0]
+          ? moment().subtract(1, 'day').format('DD-MM-YYYY')
+          : rangeStart.format('DD-MM-YYYY');
+      const fetchEnd = rangeEnd.format('DD-MM-YYYY');
+
+      try {
+        const days = await fetchRange(convertedParams, fetchStart, fetchEnd, log);
+
+        // Group fetched days by YYYY-MM and store each month in L1
+        const byMonth = new Map<string, Day[]>();
+        for (const day of days) {
+          const ym = moment(day.date.gregorian.date, 'DD-MM-YYYY').format('YYYY-MM');
+          if (!byMonth.has(ym)) byMonth.set(ym, []);
+          byMonth.get(ym)!.push(day);
+        }
+
+        for (const [ym, monthDays] of byMonth) {
+          cached.set(ym, monthDays);
+          setCachedMonth(location, method, school, ym, monthDays); // fire-and-forget
+        }
+      } catch (error) {
+        log.error('Failed to fetch prayer times range', {
+          range,
+          error: (error as Error).message,
+        });
+        await log.flush();
+        return undefined;
+      }
+    }
+  }
+
+  await logger.flush();
+
+  /* ---- merge all months and sort ---- */
+  const allDays: Day[] = [];
+  for (const ym of neededMonths) {
+    const monthData = cached.get(ym);
+    if (monthData) allDays.push(...monthData);
+  }
+
+  allDays.sort((a, b) => {
+    const da = moment(a.date.gregorian.date, 'DD-MM-YYYY');
+    const db = moment(b.date.gregorian.date, 'DD-MM-YYYY');
+    return da.diff(db);
+  });
+
+  return allDays;
 }
