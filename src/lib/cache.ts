@@ -103,7 +103,9 @@ export async function setCachedICS(allParams: Record<string, string>, icsString:
   const redis = await getRedis();
   if (!redis) return;
   try {
-    await redis.set(icsKey(allParams), icsString, { EX: L1_TTL });
+    const endOfMonth = moment().add(1, 'month').startOf('month').diff(moment(), 'seconds');
+    const ttl = Math.min(L1_TTL, Math.max(endOfMonth, 60));
+    await redis.set(icsKey(allParams), icsString, { EX: ttl });
   } catch {
     /* skip */
   }
