@@ -1,7 +1,14 @@
 import { getRedis } from 'lib/redis';
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const key = request.nextUrl.searchParams.get('key');
+  const expected = process.env.ANALYTICS_KEY;
+
+  if (!expected || key !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const redis = await getRedis();
   if (!redis) {
     return NextResponse.json({ status: 'unavailable', message: 'Redis not connected' }, { status: 503 });
@@ -12,8 +19,8 @@ export async function GET() {
 
     // Extract unique locations from L1 keys (pt:location:method:school:month)
     const locations = new Set<string>();
-    for (const key of l1Keys) {
-      const parts = key.split(':');
+    for (const k of l1Keys) {
+      const parts = k.split(':');
       // Location is everything between first and last 3 segments (method:school:month)
       const location = parts.slice(1, -3).join(':');
       if (location) locations.add(location);

@@ -3,6 +3,7 @@ import moment from 'moment/moment';
 import { getRedis } from './redis';
 
 const L1_TTL = 7 * 24 * 60 * 60; // 7 days
+const GEO_TTL = 30 * 24 * 60 * 60; // 30 days
 
 type Day = any;
 
@@ -19,10 +20,44 @@ export function normalizeLocation(params: {
   return `${Number(params.latitude).toFixed(2)},${Number(params.longitude).toFixed(2)}`;
 }
 
+/* ---- Geo coordinate cache ---- */
+
+export async function getCoordinates(normalizedAddress: string): Promise<string | null> {
+  const redis = await getRedis();
+  if (!redis) return null;
+  try {
+    return await redis.get(`geo:${normalizedAddress}`);
+  } catch {
+    return null;
+  }
+}
+
+export async function setCoordinates(normalizedAddress: string, lat: number, lng: number): Promise<void> {
+  const redis = await getRedis();
+  if (!redis) return;
+  try {
+    const coords = `${Number(lat).toFixed(2)},${Number(lng).toFixed(2)}`;
+    await redis.set(`geo:${normalizedAddress}`, coords, { EX: GEO_TTL });
+  } catch {
+    /* skip */
+  }
+}
+
 /* ---- Key builders ---- */
 
 function prayerDataKey(location: string, method: number, school: number, yearMonth: string): string {
   return `pt:${location}:${method}:${school}:${yearMonth}`;
+}
+
+export function normalizeIcsParams(allParams: Record<string, string>, coords?: string): Record<string, string> {
+  const normalized = { ...allParams };
+  if (coords && normalized.address) {
+    const [lat, lng] = coords.split(',');
+    delete normalized.address;
+    normalized.latitude = lat;
+    normalized.longitude = lng;
+  }
+  return normalized;
 }
 
 function icsKey(allParams: Record<string, string>): string {

@@ -1,5 +1,4 @@
-import { logger } from 'lib/axiom/server';
-import { getCachedMonths, normalizeLocation, setCachedMonth } from 'lib/cache';
+import { getCachedMonths, getCoordinates, normalizeLocation, setCachedMonth, setCoordinates } from 'lib/cache';
 import moment from 'moment/moment';
 
 /* ------------------------------------------------------------------ */
@@ -125,8 +124,7 @@ async function fetchRange(
   convertedParams: Params,
   start: string,
   end: string,
-  log: ReturnType<typeof logger.with>,
-): Promise<Day[]> {
+): Promise<{ days: Day[]; apiCalls: number; apiErrors: number }> {
   const baseUrl = convertedParams.address
     ? `https://api.aladhan.com/v1/calendarByAddress/from/${start}/to/${end}`
     : `https://api.aladhan.com/v1/calendar/from/${start}/to/${end}`;
@@ -140,12 +138,12 @@ async function fetchRange(
 
   const maxRetries = 3;
   let lastError: Error | null = null;
-  const fetchStart = Date.now();
+  let apiCalls = 0;
+  let apiErrors = 0;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      log.info('AlAdhan API request', { attempt, maxRetries, url: url.toString() });
-
+      apiCalls++;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -170,19 +168,10 @@ async function fetchRange(
         throw new Error(`AlAdhan API error: ${data.status || 'Unknown error'}`);
       }
 
-      log.info('AlAdhan API request succeeded', {
-        attempt,
-        daysReturned: data.data.length,
-        durationMs: Date.now() - fetchStart,
-        address: convertedParams.address,
-        latitude: convertedParams.latitude,
-        longitude: convertedParams.longitude,
-      });
-
-      return data.data;
+      return { days: data.data, apiCalls, apiErrors };
     } catch (error) {
       lastError = error as Error;
-      log.warn('AlAdhan API attempt failed', { attempt, maxRetries, error: lastError.message });
+      apiErrors++;
 
       if (attempt === maxRetries) break;
 
@@ -231,7 +220,7 @@ function groupContiguousMonths(months: string[]): { start: string; end: string }
 export async function getPrayerTimes(
   params: Record<keyof Params, string>,
   monthsCount: number = 3,
-): Promise<Response['data'] | undefined> {
+): Promise<{ data: Response['data']; resolvedCoords: string | null; apiCalls: number; apiErrors: number } | undefined> {
   /* ----------------------------- coercion -------------------------- */
   const convertedParams: Params = {
     ...params,
@@ -247,7 +236,8 @@ export async function getPrayerTimes(
     iso8601: params.iso8601 === 'true',
   };
 
-  const log = logger.with({ source: 'prayerTimes' });
+  let totalApiCalls = 0;
+  let totalApiErrors = 0;
 
   /* ---- determine needed months ---- */
   const startMoment = moment().subtract(1, 'day');
@@ -262,22 +252,22 @@ export async function getPrayerTimes(
     cursor.add(1, 'month');
   }
 
-  /* ---- check L1 cache ---- */
-  const location = normalizeLocation(params);
+  /* ---- resolve address → coordinates for cache key ---- */
   const method = convertedParams.method;
   const school = convertedParams.school;
+  const addressKey = params.address ? normalizeLocation(params) : null;
+  let location: string;
+  let resolvedCoords: string | null = null;
+
+  if (addressKey) {
+    // Address mode: check if we already have a coordinate mapping
+    resolvedCoords = await getCoordinates(addressKey);
+    location = resolvedCoords ?? addressKey;
+  } else {
+    location = normalizeLocation(params);
+  }
 
   const { cached, missing } = await getCachedMonths(location, method, school, neededMonths);
-
-  log.info('cache', {
-    l1: missing.length === 0 ? 'hit' : cached.size === 0 ? 'miss' : 'partial',
-    l1_total: neededMonths.length,
-    l1_cached: cached.size,
-    l1_missing: missing.length,
-    location,
-    method,
-    school,
-  });
 
   /* ---- fetch missing months ---- */
   if (missing.length > 0) {
@@ -295,7 +285,21 @@ export async function getPrayerTimes(
       const fetchEnd = rangeEnd.format('DD-MM-YYYY');
 
       try {
-        const days = await fetchRange(convertedParams, fetchStart, fetchEnd, log);
+        const { days, apiCalls, apiErrors } = await fetchRange(convertedParams, fetchStart, fetchEnd);
+        totalApiCalls += apiCalls;
+        totalApiErrors += apiErrors;
+
+        // If address mode and we don't have coords yet, extract from API response
+        if (addressKey && !resolvedCoords && days.length > 0) {
+          const meta = days[0].meta;
+          resolvedCoords = `${Number(meta.latitude).toFixed(2)},${Number(meta.longitude).toFixed(2)}`;
+          setCoordinates(addressKey, meta.latitude, meta.longitude); // fire-and-forget
+
+          // Re-key location to coordinates so L1 data is stored under coords
+          if (location !== resolvedCoords) {
+            location = resolvedCoords;
+          }
+        }
 
         // Group fetched days by YYYY-MM and store each month in L1
         const byMonth = new Map<string, Day[]>();
@@ -309,18 +313,11 @@ export async function getPrayerTimes(
           cached.set(ym, monthDays);
           setCachedMonth(location, method, school, ym, monthDays); // fire-and-forget
         }
-      } catch (error) {
-        log.error('Failed to fetch prayer times range', {
-          range,
-          error: (error as Error).message,
-        });
-        await log.flush();
+      } catch {
         return undefined;
       }
     }
   }
-
-  await logger.flush();
 
   /* ---- merge all months and sort ---- */
   const allDays: Day[] = [];
@@ -335,5 +332,5 @@ export async function getPrayerTimes(
     return da.diff(db);
   });
 
-  return allDays;
+  return { data: allDays, resolvedCoords, apiCalls: totalApiCalls, apiErrors: totalApiErrors };
 }

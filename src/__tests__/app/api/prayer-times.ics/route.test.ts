@@ -1,603 +1,304 @@
-import { getPrayerTimes } from 'prayerTimes';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { NextRequest } from 'next/server';
-import { GET } from '../../../../app/api/prayer-times.ics/route';
 
-// Get the mock functions
-const { mockCreateEvent } = jest.requireMock('ical-generator');
-const { mockMomentAdd } = jest.requireMock('moment/moment');
+// --- Mocks ---
 
-// Mock the modules
-jest.mock('prayerTimes', () => ({
-  getPrayerTimes: jest.fn(),
+const mockCreateEvent = mock(() => ({ createAlarm: mock(() => {}) }));
+const mockMomentAdd = mock(function (this: any) {
+  return this;
+});
+
+const mockDate = new Date('2025-01-01T12:00:00.571Z');
+function createMockMoment(): any {
+  return {
+    add: mockMomentAdd,
+    subtract: mock(() => createMockMoment()),
+    toDate: mock(() => mockDate),
+    format: mock(() => '01-01-2023'),
+    isBefore: mock(() => false),
+    startOf: mock(() => createMockMoment()),
+    utc: mock(() => createMockMoment()),
+    tz: mock(() => createMockMoment()),
+    diff: mock(() => 12),
+  };
+}
+
+const mockMoment: any = mock(() => createMockMoment());
+Object.assign(mockMoment, {
+  add: mockMomentAdd,
+  utc: mock(() => createMockMoment()),
+  tz: mock(() => createMockMoment()),
+});
+
+mock.module('moment/moment', () => ({ default: mockMoment }));
+mock.module('moment-timezone', () => ({ default: mockMoment }));
+
+const mockIcal = mock(() => ({
+  createEvent: mockCreateEvent,
+  toString: mock(() => 'calendar-content'),
+  x: mock(() => {}),
 }));
 
-jest.mock('ical-generator', () => {
-  const mockCreateEvent = jest.fn().mockReturnValue({
-    createAlarm: jest.fn(),
-  });
+mock.module('ical-generator', () => ({
+  default: mockIcal,
+  ICalAlarmType: { audio: 'audio' },
+  ICalCalendarMethod: { PUBLISH: 'PUBLISH' },
+}));
 
-  const mockIcal = jest.fn().mockReturnValue({
-    createEvent: mockCreateEvent,
-    toString: jest.fn().mockReturnValue('calendar-content'),
-    x: jest.fn(),
-  });
+const mockGetPrayerTimes = mock(() => Promise.resolve(undefined as any));
+mock.module('prayerTimes', () => ({ getPrayerTimes: mockGetPrayerTimes }));
 
-  return {
-    __esModule: true,
-    default: mockIcal,
-    ICalAlarmType: {
-      audio: 'audio',
-    },
-    ICalCalendarMethod: {
-      PUBLISH: 'PUBLISH',
-    },
-    mockCreateEvent,
-  };
-});
+mock.module('lib/cache', () => ({
+  getCachedICS: mock(() => Promise.resolve(null)),
+  setCachedICS: mock(() => Promise.resolve(undefined)),
+  getCoordinates: mock(() => Promise.resolve(null)),
+  normalizeLocation: mock((params: any) => {
+    if (params.address) return String(params.address).toLowerCase().trim().replace(/\s+/g, '-');
+    return `${Number(params.latitude).toFixed(2)},${Number(params.longitude).toFixed(2)}`;
+  }),
+  normalizeIcsParams: mock((allParams: any, coords?: string) => {
+    const normalized = { ...allParams };
+    if (coords && normalized.address) {
+      const [lat, lng] = coords.split(',');
+      delete normalized.address;
+      normalized.latitude = lat;
+      normalized.longitude = lng;
+    }
+    return normalized;
+  }),
+}));
 
-jest.mock('moment/moment', () => {
-  const mockMomentAdd = jest.fn().mockReturnThis();
+mock.module('lib/analytics', () => ({
+  trackRequest: () => {},
+}));
 
-  // Create a proper mock moment object with chained methods
-  const createMockMoment = (): any => {
-    const mockDate = new Date('2025-01-01T12:00:00.571Z');
-    return {
-      add: mockMomentAdd,
-      subtract: jest.fn(() => createMockMoment()),
-      toDate: jest.fn(() => mockDate),
-      format: jest.fn(() => '01-01-2023'),
-      isBefore: jest.fn(() => false),
-      startOf: jest.fn(() => createMockMoment()),
-      utc: jest.fn(() => createMockMoment()),
-      diff: jest.fn(() => 12),
-    };
-  };
+mock.module('../../../constants/translations', () => ({
+  translations: {
+    en: { calendarName: 'Prayer Times' },
+    ar: { calendarName: 'أوقات الصلاة' },
+  },
+}));
 
-  const mockMoment = jest.fn(() => createMockMoment());
+// Import after mocks
+const { GET } = await import('../../../../app/api/prayer-times.ics/route');
 
-  // Add static methods to the mock
-  Object.assign(mockMoment, {
-    add: mockMomentAdd,
-  });
+// --- Helpers ---
 
-  return {
-    __esModule: true,
-    default: mockMoment,
-    mockMomentAdd,
-  };
-});
-
-// Helper function to create a mock NextRequest
 function createMockRequest(searchParams: Record<string, string> = {}): NextRequest {
   const url = new URL('http://localhost:3000/api/prayer-times.ics');
-  Object.entries(searchParams).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(searchParams)) {
     url.searchParams.set(key, value);
-  });
-
-  return {
-    nextUrl: url,
-    method: 'GET',
-  } as NextRequest;
+  }
+  return { nextUrl: url, method: 'GET', headers: new Headers() } as unknown as NextRequest;
 }
+
+const mockPrayerData = [
+  {
+    timings: {
+      Fajr: '04:30',
+      Sunrise: '06:00',
+      Dhuhr: '12:00',
+      Asr: '15:30',
+      Maghrib: '18:00',
+      Isha: '19:30',
+      Midnight: '00:00',
+    },
+    date: { gregorian: { date: '01-01-2023' } },
+    meta: { timezone: 'Africa/Cairo' },
+  },
+];
+
+const mockRamadanData = [
+  {
+    timings: {
+      Fajr: '04:30',
+      Sunrise: '06:00',
+      Dhuhr: '12:00',
+      Asr: '15:30',
+      Maghrib: '18:00',
+      Isha: '19:30',
+      Midnight: '00:00',
+    },
+    date: {
+      gregorian: { date: '01-04-2024' },
+      hijri: { month: { number: 9 } },
+    },
+    meta: { timezone: 'Africa/Cairo' },
+  },
+];
+
+// --- Tests ---
 
 describe('Prayer Times API', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-
-    // Setup mock return value for getPrayerTimes
-    const mockPrayerData = [
-      {
-        timings: {
-          Fajr: '04:30',
-          Sunrise: '06:00',
-          Dhuhr: '12:00',
-          Asr: '15:30',
-          Maghrib: '18:00',
-          Isha: '19:30',
-          Midnight: '00:00',
-        },
-        date: {
-          gregorian: {
-            date: '01-01-2023',
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
-      },
-    ];
-
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockPrayerData);
+    mockCreateEvent.mockClear();
+    mockGetPrayerTimes.mockReset();
+    mockGetPrayerTimes.mockResolvedValue({ data: mockPrayerData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
   });
 
-  it('returns 400 if prayer times cannot be fetched', async () => {
-    (getPrayerTimes as jest.Mock).mockResolvedValue(undefined);
-
-    const request = createMockRequest({
-      address: 'Invalid Address',
-      method: '5',
-    });
-
-    const response = await GET(request);
-    const responseData = await response.json();
-
+  test('returns 400 if prayer times cannot be fetched', async () => {
+    mockGetPrayerTimes.mockResolvedValue(undefined);
+    const response = await GET(createMockRequest({ address: 'Invalid Address', method: '5' }));
+    const data = await response.json();
     expect(response.status).toBe(400);
-    expect(responseData).toEqual({ message: 'Invalid address or coordinates' });
+    expect(data).toEqual({ message: 'Invalid address or coordinates' });
   });
 
-  it('returns ical data for valid address request', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      alarm: '5',
-      duration: '25',
-    });
-
-    const response = await GET(request);
-    const responseText = await response.text();
-
+  test('returns ical data for valid address request', async () => {
+    const response = await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', alarm: '5', duration: '25' }));
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
-    expect(responseText).toBe('calendar-content');
+    expect(await response.text()).toBe('calendar-content');
   });
 
-  it('handles coordinate queries', async () => {
-    const request = createMockRequest({
-      latitude: '30.0444',
-      longitude: '31.2357',
-      method: '5',
-    });
-
-    const response = await GET(request);
-
-    expect(getPrayerTimes).toHaveBeenCalledWith(
-      expect.objectContaining({
-        latitude: '30.0444',
-        longitude: '31.2357',
-        method: '5',
-      }),
+  test('handles coordinate queries', async () => {
+    const response = await GET(createMockRequest({ latitude: '30.0444', longitude: '31.2357', method: '5' }));
+    expect(response.status).toBe(200);
+    expect(mockGetPrayerTimes).toHaveBeenCalledWith(
+      expect.objectContaining({ latitude: '30.0444', longitude: '31.2357', method: '5' }),
       3,
-      expect.objectContaining({
-        latitude: '30.0444',
-        longitude: '31.2357',
-        method: '5',
-        lang: 'en',
-      }),
-    );
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
-  });
-
-  it('respects months parameter', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      months: '6',
-    });
-
-    await GET(request);
-
-    expect(getPrayerTimes).toHaveBeenCalledWith(
-      expect.any(Object),
-      6,
-      expect.objectContaining({
-        address: 'Cairo, Egypt',
-        method: '5',
-        months: '6',
-        lang: 'en',
-      }),
     );
   });
 
-  it('caps months parameter at 11', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      months: '20',
-    });
-
-    await GET(request);
-
-    expect(getPrayerTimes).toHaveBeenCalledWith(
-      expect.any(Object),
-      11,
-      expect.objectContaining({
-        address: 'Cairo, Egypt',
-        method: '5',
-        months: '11',
-        lang: 'en',
-      }),
-    );
+  test('respects months parameter', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', months: '6' }));
+    expect(mockGetPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 6);
   });
 
-  it('floors months parameter to 1', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      months: '0',
-    });
-
-    await GET(request);
-
-    expect(getPrayerTimes).toHaveBeenCalledWith(
-      expect.any(Object),
-      1,
-      expect.objectContaining({
-        address: 'Cairo, Egypt',
-        method: '5',
-        months: '1',
-        lang: 'en',
-      }),
-    );
+  test('caps months parameter at 11', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', months: '20' }));
+    expect(mockGetPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 11);
   });
 
-  it('respects duration parameter', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      duration: '0',
-    });
+  test('floors months parameter to 1', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', months: '0' }));
+    expect(mockGetPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 1);
+  });
 
-    await GET(request);
-
+  test('respects duration parameter', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', duration: '0' }));
     expect(mockMomentAdd).toHaveBeenCalledWith(0, 'minute');
   });
 
-  it('filters events based on events query parameter', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      events: '0,2,4', // Only include Fajr, Dhuhr, and Maghrib
-    });
-
-    const response = await GET(request);
-
+  test('filters events based on events query parameter', async () => {
+    const response = await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', events: '0,2,4' }));
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/calendar; charset=utf-8');
   });
 
-  it('uses Arabic names when lang parameter is ar', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      lang: 'ar',
-    });
-
-    await GET(request);
-
+  test('uses Arabic names when lang=ar', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', lang: 'ar' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'الفجر' }));
   });
 
-  it('uses English names when lang parameter is en or not specified', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      lang: 'en',
-    });
-
-    await GET(request);
-
+  test('uses English names when lang=en', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', lang: 'en' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Fajr' }));
   });
 
-  it('handles alarm parameters correctly', async () => {
-    const mockEvent = {
-      createAlarm: jest.fn(),
-    };
+  test('handles alarm parameters correctly', async () => {
+    const mockEvent = { createAlarm: mock(() => {}) };
     mockCreateEvent.mockReturnValue(mockEvent);
 
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      alarm: '5,0,-5', // Before, at time, and after
-    });
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', alarm: '5,0,-5' }));
 
-    await GET(request);
-
-    expect(mockEvent.createAlarm).toHaveBeenCalledWith({
-      type: 'audio',
-      triggerBefore: 300, // 5 minutes * 60 seconds
-    });
-    expect(mockEvent.createAlarm).toHaveBeenCalledWith({
-      type: 'audio',
-      trigger: 0,
-    });
-    expect(mockEvent.createAlarm).toHaveBeenCalledWith({
-      type: 'audio',
-      triggerAfter: 300, // 5 minutes * 60 seconds
-    });
+    expect(mockEvent.createAlarm).toHaveBeenCalledWith({ type: 'audio', triggerBefore: 300 });
+    expect(mockEvent.createAlarm).toHaveBeenCalledWith({ type: 'audio', trigger: 0 });
+    expect(mockEvent.createAlarm).toHaveBeenCalledWith({ type: 'audio', triggerAfter: 300 });
   });
 
-  it('handles Ramadan mode parameters correctly', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '45',
-      traweehDuration: '90',
-    });
+  test('creates Ramadan events (Iftar, Tarawih, Suhoor)', async () => {
+    mockGetPrayerTimes.mockResolvedValue({ data: mockRamadanData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
 
-    await GET(request);
-
-    expect(getPrayerTimes).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: 'Cairo, Egypt',
-        method: '5',
-      }),
-      3,
-      expect.objectContaining({
+    await GET(
+      createMockRequest({
         address: 'Cairo, Egypt',
         method: '5',
         ramadanMode: 'true',
         iftarDuration: '45',
         traweehDuration: '90',
+        suhoorDuration: '30',
         lang: 'en',
       }),
     );
-    expect(mockCreateEvent).toHaveBeenCalled();
-  });
 
-  it('creates separate Iftar and Tarawih events during Ramadan', async () => {
-    // Mock the prayer data to include Hijri month 9 (Ramadan)
-    const mockRamadanData = [
-      {
-        timings: {
-          Fajr: '04:30',
-          Sunrise: '06:00',
-          Dhuhr: '12:00',
-          Asr: '15:30',
-          Maghrib: '18:00',
-          Isha: '19:30',
-          Midnight: '00:00',
-        },
-        date: {
-          gregorian: {
-            date: '01-04-2024', // Date in Ramadan
-          },
-          hijri: {
-            month: {
-              number: 9, // Ramadan month
-            },
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
-      },
-    ];
-
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
-
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '45',
-      traweehDuration: '90',
-      lang: 'en',
-    });
-
-    await GET(request);
-
-    // Should create regular prayer events plus separate Iftar and Tarawih events
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Maghrib' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Isha' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Suhoor' }));
   });
 
-  it('does not create Tarawih event when duration is 0', async () => {
-    // Mock the prayer data to include Hijri month 9 (Ramadan)
-    const mockRamadanData = [
-      {
-        timings: {
-          Fajr: '04:30',
-          Sunrise: '06:00',
-          Dhuhr: '12:00',
-          Asr: '15:30',
-          Maghrib: '18:00',
-          Isha: '19:30',
-          Midnight: '00:00',
-        },
-        date: {
-          gregorian: {
-            date: '01-04-2024', // Date in Ramadan
-          },
-          hijri: {
-            month: {
-              number: 9, // Ramadan month
-            },
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
-      },
-    ];
+  test('does not create Tarawih when duration is 0', async () => {
+    mockGetPrayerTimes.mockResolvedValue({ data: mockRamadanData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
 
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
+    await GET(
+      createMockRequest({
+        address: 'Cairo, Egypt',
+        method: '5',
+        ramadanMode: 'true',
+        iftarDuration: '30',
+        traweehDuration: '0',
+        lang: 'en',
+      }),
+    );
 
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '30',
-      traweehDuration: '0', // No Tarawih
-      lang: 'en',
-    });
-
-    await GET(request);
-
-    // Should create Iftar but not Tarawih when duration is 0
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
     expect(mockCreateEvent).not.toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
   });
 
-  it('creates separate Iftar and Tarawih events with Arabic names', async () => {
-    // Mock the prayer data to include Hijri month 9 (Ramadan)
-    const mockRamadanData = [
+  test('does not create Suhoor when duration is 0', async () => {
+    mockGetPrayerTimes.mockResolvedValue({ data: mockRamadanData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
+
+    await GET(
+      createMockRequest({
+        latitude: '30.79',
+        longitude: '30.96',
+        method: '5',
+        ramadanMode: 'true',
+        iftarDuration: '30',
+        traweehDuration: '90',
+        suhoorDuration: '0',
+        lang: 'en',
+      }),
+    );
+
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
+    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
+    expect(mockCreateEvent).not.toHaveBeenCalledWith(expect.objectContaining({ summary: 'Suhoor' }));
+  });
+
+  test('creates Arabic Ramadan event names when lang=ar', async () => {
+    const ramadanSubset = [
       {
-        timings: {
-          Maghrib: '18:00',
-          Isha: '19:30',
-        },
-        date: {
-          gregorian: {
-            date: '01-04-2024', // Date in Ramadan
-          },
-          hijri: {
-            month: {
-              number: 9, // Ramadan month
-            },
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
+        timings: { Maghrib: '18:00', Isha: '19:30' },
+        date: { gregorian: { date: '01-04-2024' }, hijri: { month: { number: 9 } } },
+        meta: { timezone: 'Africa/Cairo' },
       },
     ];
+    mockGetPrayerTimes.mockResolvedValue({ data: ramadanSubset, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
 
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
+    await GET(
+      createMockRequest({
+        address: 'Cairo, Egypt',
+        method: '5',
+        ramadanMode: 'true',
+        iftarDuration: '45',
+        traweehDuration: '90',
+        lang: 'ar',
+      }),
+    );
 
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '45',
-      traweehDuration: '90',
-      lang: 'ar',
-    });
-
-    await GET(request);
-
-    // Should create Arabic-named Iftar and Tarawih events
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'الإفطار' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'التراويح' }));
   });
 
-  it('defaults to 3 months when months parameter is not provided', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-    });
-
-    await GET(request);
-
-    expect(getPrayerTimes).toHaveBeenCalledWith(
-      expect.any(Object),
-      3,
-      expect.objectContaining({
-        address: 'Cairo, Egypt',
-        method: '5',
-        lang: 'en',
-      }),
-    );
+  test('defaults to 3 months when months not provided', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5' }));
+    expect(mockGetPrayerTimes).toHaveBeenCalledWith(expect.any(Object), 3);
   });
 
-  it('defaults to English when lang parameter is not provided', async () => {
-    const request = createMockRequest({
-      address: 'Cairo, Egypt',
-      method: '5',
-    });
-
-    await GET(request);
-
+  test('defaults to English when lang not provided', async () => {
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Fajr' }));
-  });
-
-  it('should create Suhoor events before Fajr during Ramadan', async () => {
-    // Mock the prayer data to include Hijri month 9 (Ramadan)
-    const mockRamadanData = [
-      {
-        timings: {
-          Fajr: '04:30',
-          Maghrib: '18:00',
-          Isha: '19:30',
-        },
-        date: {
-          gregorian: {
-            date: '01-04-2024',
-          },
-          hijri: {
-            month: {
-              number: 9,
-            },
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
-      },
-    ];
-
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
-
-    const request = createMockRequest({
-      latitude: '30.7945942',
-      longitude: '30.9563828',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '30',
-      traweehDuration: '90',
-      suhoorDuration: '45',
-      lang: 'en',
-    });
-
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-
-    // Should create Suhoor, Iftar, and Tarawih events
-    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Suhoor' }));
-    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
-    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
-  });
-
-  it('should not create Suhoor events when duration is 0', async () => {
-    // Mock the prayer data to include Hijri month 9 (Ramadan)
-    const mockRamadanData = [
-      {
-        timings: {
-          Fajr: '04:30',
-          Maghrib: '18:00',
-          Isha: '19:30',
-        },
-        date: {
-          gregorian: {
-            date: '01-04-2024',
-          },
-          hijri: {
-            month: {
-              number: 9,
-            },
-          },
-        },
-        meta: {
-          timezone: 'Africa/Cairo',
-        },
-      },
-    ];
-
-    (getPrayerTimes as jest.Mock).mockResolvedValue(mockRamadanData);
-
-    const request = createMockRequest({
-      latitude: '30.7945942',
-      longitude: '30.9563828',
-      method: '5',
-      ramadanMode: 'true',
-      iftarDuration: '30',
-      traweehDuration: '90',
-      suhoorDuration: '0',
-      lang: 'en',
-    });
-
-    const response = await GET(request);
-
-    expect(response.status).toBe(200);
-
-    // Should create Iftar and Tarawih but not Suhoor when duration is 0
-    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Iftar' }));
-    expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Tarawih' }));
-    expect(mockCreateEvent).not.toHaveBeenCalledWith(expect.objectContaining({ summary: 'Suhoor' }));
   });
 });

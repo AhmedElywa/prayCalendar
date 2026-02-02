@@ -1,6 +1,6 @@
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
-import { logger } from 'lib/axiom/server';
-import { getCachedICS, setCachedICS } from 'lib/cache';
+import { trackRequest } from 'lib/analytics';
+import { getCachedICS, getCoordinates, normalizeIcsParams, normalizeLocation, setCachedICS } from 'lib/cache';
 import moment from 'moment-timezone';
 import { type NextRequest, NextResponse } from 'next/server';
 import { translations } from '../../../constants/translations';
@@ -114,8 +114,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Resolve address → coordinates for L2 cache normalization
+    let resolvedCoords: string | null = null;
+    if (queryParams.address) {
+      const addressKey = normalizeLocation(queryParams);
+      resolvedCoords = await getCoordinates(addressKey);
+    }
+    const normalizedParams = normalizeIcsParams(allRequestParams, resolvedCoords ?? undefined);
+
     // L2 cache: check for cached ICS string
-    const cachedIcs = await getCachedICS(allRequestParams);
+    const cachedIcs = await getCachedICS(normalizedParams);
     if (cachedIcs) {
       const { maxAge, swr } = calculateCacheDuration();
       const cacheTag = generateCacheTag(allRequestParams);
@@ -123,15 +131,20 @@ export async function GET(request: NextRequest) {
         ', ',
       );
 
-      const log = logger.with({ source: 'prayer-times.ics' });
-      log.info('cache', {
-        l2: 'hit',
-        location: allRequestParams.address || `${allRequestParams.latitude},${allRequestParams.longitude}`,
-        method: allRequestParams.method,
-        months: monthsCount,
+      const loc = allRequestParams.address || `${allRequestParams.latitude},${allRequestParams.longitude}`;
+      const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || 'unknown';
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+      trackRequest({
+        location: loc,
+        method: allRequestParams.method || '0',
         lang,
+        l1Status: 'hit',
+        l2Status: 'hit',
+        apiCalls: 0,
+        apiErrors: 0,
+        country,
+        ip,
       });
-      await logger.flush();
 
       return new NextResponse(cachedIcs, {
         headers: {
@@ -149,9 +162,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch calendar data – now accepts address OR latitude/longitude
-    const days = await getPrayerTimes(queryParams, monthsCount);
-    if (!days) {
+    const result = await getPrayerTimes(queryParams, monthsCount);
+    if (!result) {
       return NextResponse.json({ message: 'Invalid address or coordinates' }, { status: 400 });
+    }
+    const { data: days, resolvedCoords: coordsFromApi, apiCalls, apiErrors } = result;
+
+    // Update normalized params with coords from API if we didn't have them before
+    if (coordsFromApi && !resolvedCoords) {
+      Object.assign(normalizedParams, normalizeIcsParams(allRequestParams, coordsFromApi));
     }
 
     /* ------------------------------------------------------------------ */
@@ -305,22 +324,28 @@ export async function GET(request: NextRequest) {
       ', ',
     );
 
-    const log = logger.with({ source: 'prayer-times.ics' });
-    log.info('cache', {
-      l2: 'miss',
-      location: queryParams.address || `${queryParams.latitude},${queryParams.longitude}`,
-      events: allowedEvents.length,
-      days: days.length,
-      months: monthsCount,
-      lang,
-      ramadanMode,
-    });
-    await logger.flush();
-
     const icsString = calendar.toString();
 
     // Store in L2 cache (fire-and-forget)
-    setCachedICS(allRequestParams, icsString);
+    setCachedICS(normalizedParams, icsString);
+
+    // Determine L1 status: if we had no API calls, L1 was a full hit
+    const hadMissing = apiCalls > 0;
+    const l1Status: 'hit' | 'miss' | 'partial' = hadMissing ? (resolvedCoords ? 'partial' : 'miss') : 'hit';
+    const loc = queryParams.address || `${queryParams.latitude},${queryParams.longitude}`;
+    const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || 'unknown';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    trackRequest({
+      location: loc,
+      method: queryParams.method || '0',
+      lang,
+      l1Status,
+      l2Status: 'miss',
+      apiCalls,
+      apiErrors,
+      country,
+      ip,
+    });
 
     return new NextResponse(icsString, {
       headers: {
