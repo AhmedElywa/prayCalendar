@@ -124,23 +124,35 @@ export async function setCachedMonth(
 
 /* ---- L2: Full ICS string ---- */
 
-export async function getCachedICS(allParams: Record<string, string>): Promise<string | null> {
+export async function getCachedICS(
+  allParams: Record<string, string>,
+): Promise<{ ics: string; timezone?: string } | null> {
   const redis = await getRedis();
   if (!redis) return null;
   try {
-    return await redis.get(icsKey(allParams));
+    const raw = await redis.get(icsKey(allParams));
+    if (!raw) return null;
+    // Support both new JSON format and legacy plain ICS strings
+    if (raw.startsWith('{')) {
+      return JSON.parse(raw);
+    }
+    return { ics: raw };
   } catch {
     return null;
   }
 }
 
-export async function setCachedICS(allParams: Record<string, string>, icsString: string): Promise<void> {
+export async function setCachedICS(
+  allParams: Record<string, string>,
+  icsString: string,
+  timezone?: string,
+): Promise<void> {
   const redis = await getRedis();
   if (!redis) return;
   try {
     const endOfMonth = moment().add(1, 'month').startOf('month').diff(moment(), 'seconds');
     const ttl = Math.min(L1_TTL, Math.max(endOfMonth, 60));
-    await redis.set(icsKey(allParams), icsString, { EX: ttl });
+    await redis.set(icsKey(allParams), JSON.stringify({ ics: icsString, timezone }), { EX: ttl });
   } catch {
     /* skip */
   }

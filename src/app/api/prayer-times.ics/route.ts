@@ -123,8 +123,8 @@ export async function GET(request: NextRequest) {
     const normalizedParams = normalizeIcsParams(allRequestParams, resolvedCoords ?? undefined);
 
     // L2 cache: check for cached ICS string
-    const cachedIcs = await getCachedICS(normalizedParams);
-    if (cachedIcs) {
+    const cached = await getCachedICS(normalizedParams);
+    if (cached) {
       const { maxAge, swr } = calculateCacheDuration();
       const cacheTag = generateCacheTag(allRequestParams);
       const cacheControl = [`s-maxage=${maxAge}`, `stale-while-revalidate=${swr}`, 'public', 'must-revalidate'].join(
@@ -132,21 +132,22 @@ export async function GET(request: NextRequest) {
       );
 
       const loc = allRequestParams.address || `${allRequestParams.latitude},${allRequestParams.longitude}`;
-      const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || 'unknown';
+
       const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
       trackRequest({
         location: loc,
-        method: allRequestParams.method || '0',
+
         lang,
         l1Status: 'hit',
         l2Status: 'hit',
         apiCalls: 0,
         apiErrors: 0,
-        country,
+
         ip,
+        timezone: cached.timezone,
       });
 
-      return new NextResponse(cachedIcs, {
+      return new NextResponse(cached.ics, {
         headers: {
           'Content-Type': 'text/calendar; charset=utf-8',
           'Cache-Control': cacheControl,
@@ -327,24 +328,23 @@ export async function GET(request: NextRequest) {
     const icsString = calendar.toString();
 
     // Store in L2 cache (fire-and-forget)
-    setCachedICS(normalizedParams, icsString);
+    setCachedICS(normalizedParams, icsString, days[0]?.meta.timezone);
 
     // Determine L1 status: if we had no API calls, L1 was a full hit
     const hadMissing = apiCalls > 0;
     const l1Status: 'hit' | 'miss' | 'partial' = hadMissing ? (resolvedCoords ? 'partial' : 'miss') : 'hit';
     const loc = queryParams.address || `${queryParams.latitude},${queryParams.longitude}`;
-    const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || 'unknown';
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
     trackRequest({
       location: loc,
-      method: queryParams.method || '0',
+
       lang,
       l1Status,
       l2Status: 'miss',
       apiCalls,
       apiErrors,
-      country,
       ip,
+      timezone: days[0]?.meta.timezone,
     });
 
     return new NextResponse(icsString, {

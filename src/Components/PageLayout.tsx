@@ -6,9 +6,9 @@ import Navigation from './Navigation';
 
 export default function PageLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-zinc-800">
+    <main className="flex min-h-screen flex-col bg-gray-50 dark:bg-zinc-800">
       <Navigation />
-      {children}
+      <div className="flex-1">{children}</div>
       <Footer />
       <InstallPrompt />
     </main>
