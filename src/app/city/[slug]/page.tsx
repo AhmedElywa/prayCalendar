@@ -3,6 +3,9 @@ import { notFound } from 'next/navigation';
 import { cities, getCityBySlug } from '../../../constants/cities';
 import CityPageClient from './CityPageClient';
 
+// Force dynamic rendering to ensure fresh prayer times
+export const dynamic = 'force-dynamic';
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -47,7 +50,7 @@ export default async function CityPage({ params }: Props) {
       .toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
       .replace(/\//g, '-');
     const url = `https://api.aladhan.com/v1/timings/${today}?latitude=${city.latitude}&longitude=${city.longitude}&method=${city.method}`;
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const res = await fetch(url, { cache: 'no-store' });
     const j = await res.json();
     if (j.code === 200) {
       timings = j.data.timings;
