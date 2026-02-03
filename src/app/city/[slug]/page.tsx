@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cities, getCityBySlug } from '../../../constants/cities';
+import { getCachedMonths, normalizeLocation } from '../../../lib/cache';
 import CityPageClient from './CityPageClient';
-
-// Force dynamic rendering to ensure fresh prayer times
-export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -41,25 +39,50 @@ export default async function CityPage({ params }: Props) {
   const city = getCityBySlug(slug);
   if (!city) notFound();
 
-  // Fetch today's prayer times server-side
+  // Fetch today's prayer times - try Redis cache first, then API fallback
   let timings: Record<string, string> | null = null;
   let hijriDate: { day: string; month: { en: string; ar: string }; year: string } | null = null;
+
   try {
-    // Use date in URL to avoid 302 redirect issues with caching
-    const today = new Date()
-      .toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      .replace(/\//g, '-');
-    const url = `https://api.aladhan.com/v1/timings/${today}?latitude=${city.latitude}&longitude=${city.longitude}&method=${city.method}`;
-    const res = await fetch(url, { cache: 'no-store' });
-    const j = await res.json();
-    if (j.code === 200) {
-      timings = j.data.timings;
-      hijriDate = j.data.date?.hijri
-        ? { day: j.data.date.hijri.day, month: j.data.date.hijri.month, year: j.data.date.hijri.year }
-        : null;
+    const location = normalizeLocation({ latitude: city.latitude, longitude: city.longitude });
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const today = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+    const school = 0; // Standard school (Shafi'i)
+
+    // Try to get from Redis cache first
+    const { cached } = await getCachedMonths(location, city.method, school, [currentMonth]);
+    const monthData = cached.get(currentMonth);
+
+    if (monthData) {
+      // Find today's data in the cached month
+      const todayData = monthData.find(
+        (d: { date: { gregorian: { date: string } } }) => d.date.gregorian.date === today,
+      );
+      if (todayData) {
+        timings = todayData.timings;
+        hijriDate = todayData.date?.hijri
+          ? { day: todayData.date.hijri.day, month: todayData.date.hijri.month, year: todayData.date.hijri.year }
+          : null;
+      }
+    }
+
+    // Fallback to API if cache miss
+    if (!timings) {
+      const url = `https://api.aladhan.com/v1/timings/${today}?latitude=${city.latitude}&longitude=${city.longitude}&method=${city.method}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        const j = await res.json();
+        if (j.code === 200) {
+          timings = j.data.timings;
+          hijriDate = j.data.date?.hijri
+            ? { day: j.data.date.hijri.day, month: j.data.date.hijri.month, year: j.data.date.hijri.year }
+            : null;
+        }
+      }
     }
   } catch {
-    // fail silently
+    // Silently fail - page will render without prayer times
   }
 
   // JSON-LD structured data
