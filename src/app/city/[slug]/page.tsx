@@ -20,9 +20,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `Prayer Times in ${city.name.en}, ${city.country.en} | Prayer Calendar`;
   const description = `Accurate prayer times for ${city.name.en}, ${city.country.en}. Subscribe to Fajr, Dhuhr, Asr, Maghrib, Isha times directly in your calendar. Updated daily.`;
 
+  // City-specific keywords in English and Arabic
+  const keywords = [
+    // English keywords
+    `prayer times ${city.name.en}`,
+    `${city.name.en} prayer times`,
+    `salah times ${city.name.en}`,
+    `fajr time ${city.name.en}`,
+    `maghrib time ${city.name.en}`,
+    `${city.name.en} ${city.country.en} prayer`,
+    `islamic prayer times ${city.name.en}`,
+    `namaz time ${city.name.en}`,
+    // Arabic keywords
+    `مواقيت الصلاة ${city.name.ar}`,
+    `أوقات الصلاة في ${city.name.ar}`,
+    `موعد الفجر ${city.name.ar}`,
+    `موعد المغرب ${city.name.ar}`,
+    `صلاة ${city.name.ar}`,
+    `مواقيت الصلاة ${city.country.ar}`,
+  ].join(', ');
+
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `/city/${slug}`,
     },
@@ -30,6 +51,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: 'website',
+      url: `https://pray.ahmedelywa.com/city/${slug}`,
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
     },
   };
 }

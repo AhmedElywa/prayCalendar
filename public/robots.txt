@@ -1,0 +1,12 @@
+# Prayer Calendar - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://pray.ahmedelywa.com/sitemap.xml
+
+# Block API endpoints from indexing
+Disallow: /api/
+
+# Block admin pages
+Disallow: /admin
