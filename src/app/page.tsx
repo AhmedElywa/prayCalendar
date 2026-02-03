@@ -54,6 +54,7 @@ export default function HomePage() {
   const [travelMode, setTravelMode] = useState(false);
   const [qiblaMode, setQiblaMode] = useState(false);
   const [duaMode, setDuaMode] = useState(false);
+  const [busyMode, setBusyMode] = useState(false);
   const [iqamaOffsets, setIqamaOffsets] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [jumuahMode, setJumuahMode] = useState(true);
   const [jumuahDuration, setJumuahDuration] = useState(60);
@@ -65,6 +66,7 @@ export default function HomePage() {
   const alarmOrder = alarmOptionsData.map((o) => o.value);
   const allEvents = useMemo(() => eventNames[lang], [lang]);
   const [selectedEvents, setSelectedEvents] = useState<number[]>(eventNames.en.map((_, i) => i));
+  const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
 
   const handleAlarmToggle = (v: number) =>
     setAlarms((prev) =>
@@ -74,6 +76,10 @@ export default function HomePage() {
     );
   const handleEventToggle = (idx: number) =>
     setSelectedEvents((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx].sort((a, b) => a - b),
+    );
+  const handleWeekDayToggle = (idx: number) =>
+    setSelectedWeekDays((prev) =>
       prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx].sort((a, b) => a - b),
     );
 
@@ -101,6 +107,7 @@ export default function HomePage() {
         if (p.months) setMonths(p.months);
         if (p.alarms) setAlarms(p.alarms);
         if (p.events) setSelectedEvents(p.events);
+        if (p.weekDays) setSelectedWeekDays(p.weekDays);
         if (p.travelMode !== undefined) setTravelMode(p.travelMode);
         if (p.jumuahMode !== undefined) setJumuahMode(p.jumuahMode);
         if (p.jumuahDuration) setJumuahDuration(p.jumuahDuration);
@@ -110,6 +117,7 @@ export default function HomePage() {
         if (p.suhoorDuration !== undefined) setSuhoorDuration(p.suhoorDuration);
         if (p.qiblaMode !== undefined) setQiblaMode(p.qiblaMode);
         if (p.duaMode !== undefined) setDuaMode(p.duaMode);
+        if (p.busyMode !== undefined) setBusyMode(p.busyMode);
         if (p.iqamaOffsets) setIqamaOffsets(p.iqamaOffsets);
         if (p.calendarColor) setCalendarColor(p.calendarColor);
         if (p.prayerLanguage) setPrayerLanguage(p.prayerLanguage as Lang);
@@ -147,6 +155,7 @@ export default function HomePage() {
       months,
       alarms,
       events: selectedEvents,
+      weekDays: selectedWeekDays.length === 7 ? undefined : selectedWeekDays,
       travelMode,
       jumuahMode,
       jumuahDuration,
@@ -156,6 +165,7 @@ export default function HomePage() {
       suhoorDuration,
       qiblaMode,
       duaMode,
+      busyMode,
       iqamaOffsets: iqamaOffsets.some((v) => v > 0) ? iqamaOffsets : undefined,
       calendarColor: calendarColor || undefined,
       prayerLanguage,
@@ -169,6 +179,7 @@ export default function HomePage() {
     months,
     alarms,
     selectedEvents,
+    selectedWeekDays,
     travelMode,
     jumuahMode,
     jumuahDuration,
@@ -178,6 +189,7 @@ export default function HomePage() {
     suhoorDuration,
     qiblaMode,
     duaMode,
+    busyMode,
     iqamaOffsets,
     calendarColor,
     prayerLanguage,
@@ -185,11 +197,13 @@ export default function HomePage() {
   ]);
 
   const eventsParam = selectedEvents.length === allEvents.length ? '' : `&events=${selectedEvents.join(',')}`;
+  const weekDaysParam = selectedWeekDays.length === 7 ? '' : `&weekdays=${selectedWeekDays.join(',')}`;
   const alarmParam = alarms.length ? `&alarm=${alarms.join(',')}` : '';
   const monthsParam = months !== 3 ? `&months=${months}` : '';
   const colorParam = calendarColor ? `&color=${encodeURIComponent(calendarColor)}` : '';
   const qiblaParam = qiblaMode ? '&qibla=true' : '';
   const duaParam = duaMode ? '&dua=true' : '';
+  const busyParam = busyMode ? '&busy=true' : '';
   const iqamaParam = iqamaOffsets.some((v) => v > 0) ? `&iqama=${iqamaOffsets.join(',')}` : '';
   const travelParam = travelMode ? '&traveler=true' : '';
   const jumuahParam = jumuahMode ? `&jumuah=true&jumuahDuration=${jumuahDuration}` : '';
@@ -205,7 +219,7 @@ export default function HomePage() {
       : `latitude=${locationFields.latitude}&longitude=${locationFields.longitude}`;
 
   const link = baseUrl
-    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}${travelParam}${jumuahParam}${qiblaParam}${duaParam}${iqamaParam}${colorParam}&lang=${prayerLanguage}`
+    ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${weekDaysParam}${ramadanParam}${travelParam}${jumuahParam}${qiblaParam}${duaParam}${busyParam}${iqamaParam}${colorParam}&lang=${prayerLanguage}`
     : '';
 
   // Use coordinates from autocomplete selection for preview when available
@@ -319,10 +333,14 @@ export default function HomePage() {
               allEvents={allEvents}
               selectedEvents={selectedEvents}
               handleEventToggle={handleEventToggle}
+              selectedWeekDays={selectedWeekDays}
+              handleWeekDayToggle={handleWeekDayToggle}
               qiblaMode={qiblaMode}
               setQiblaMode={setQiblaMode}
               duaMode={duaMode}
               setDuaMode={setDuaMode}
+              busyMode={busyMode}
+              setBusyMode={setBusyMode}
               iqamaOffsets={iqamaOffsets}
               setIqamaOffsets={setIqamaOffsets}
               travelMode={travelMode}

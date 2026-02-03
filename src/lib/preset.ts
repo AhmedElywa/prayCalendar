@@ -10,6 +10,7 @@ export interface PresetData {
   months?: number;
   alarms?: number[];
   events?: number[];
+  weekDays?: number[];
   travelMode?: boolean;
   jumuahMode?: boolean;
   jumuahDuration?: number;
@@ -19,6 +20,7 @@ export interface PresetData {
   suhoorDuration?: number;
   qiblaMode?: boolean;
   duaMode?: boolean;
+  busyMode?: boolean;
   iqamaOffsets?: number[];
   calendarColor?: string;
   prayerLanguage?: string;

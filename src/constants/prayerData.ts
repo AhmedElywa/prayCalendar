@@ -18,6 +18,16 @@ export const jumuahNames: Record<Lang, string> = {
   id: 'Jumat',
 };
 
+// Weekday names (0 = Sunday, 6 = Saturday)
+export const weekdayNames: Record<Lang, string[]> = {
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  ar: ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
+  tr: ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'],
+  fr: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+  ur: ['اتوار', 'پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ'],
+  id: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+};
+
 export const alarmOptionsData: Array<{ value: number; label: Record<Lang, string> }> = [
   {
     value: 5,

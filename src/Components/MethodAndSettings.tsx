@@ -1,7 +1,7 @@
 import { ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useEffect, useMemo, useState } from 'react';
 import { getMethodRecommendation } from '../constants/methodRecommendations';
-import { alarmOptionsData, eventNames } from '../constants/prayerData';
+import { alarmOptionsData, eventNames, weekdayNames } from '../constants/prayerData';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 import type { Lang } from '../hooks/useLanguage';
@@ -24,10 +24,14 @@ interface MethodAndSettingsProps {
   allEvents: string[];
   selectedEvents: number[];
   handleEventToggle: (index: number) => void;
+  selectedWeekDays: number[];
+  handleWeekDayToggle: (index: number) => void;
   qiblaMode: boolean;
   setQiblaMode: (enabled: boolean) => void;
   duaMode: boolean;
   setDuaMode: (enabled: boolean) => void;
+  busyMode: boolean;
+  setBusyMode: (enabled: boolean) => void;
   iqamaOffsets: number[];
   setIqamaOffsets: (offsets: number[]) => void;
   travelMode: boolean;
@@ -111,10 +115,14 @@ export default function MethodAndSettings({
   allEvents,
   selectedEvents,
   handleEventToggle,
+  selectedWeekDays,
+  handleWeekDayToggle,
   qiblaMode,
   setQiblaMode,
   duaMode,
   setDuaMode,
+  busyMode,
+  setBusyMode,
   iqamaOffsets,
   setIqamaOffsets,
   travelMode,
@@ -393,6 +401,14 @@ export default function MethodAndSettings({
               description={translations[lang].duaAdhkarDescription}
             />
 
+            <ToggleSwitch
+              checked={busyMode}
+              onChange={setBusyMode}
+              lang={lang}
+              label={`🚫 ${translations[lang].busyStatus}`}
+              description={translations[lang].busyStatusDescription}
+            />
+
             {/* Duration inputs for enabled modes */}
             {(ramadanMode || jumuahMode) && (
               <div className="border-t border-border-subtle pt-4">
@@ -546,6 +562,29 @@ export default function MethodAndSettings({
                     }`}
                   >
                     {ev}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Week Days */}
+            <div className="border-t border-border-subtle pt-4">
+              <div className="mb-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">
+                {translations[lang].selectWeekDays}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {weekdayNames[lang].map((day, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handleWeekDayToggle(i)}
+                    className={`rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition select-none ${
+                      selectedWeekDays.includes(i)
+                        ? 'border-gold bg-gold-glow text-gold-light'
+                        : 'border-border-subtle bg-bg-secondary text-text-secondary hover:border-[rgba(255,255,255,0.15)] hover:text-text-primary'
+                    }`}
+                  >
+                    {day}
                   </button>
                 ))}
               </div>

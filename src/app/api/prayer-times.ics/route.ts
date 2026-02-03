@@ -1,4 +1,4 @@
-import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
+import ical, { ICalAlarmType, ICalCalendarMethod, ICalEventBusyStatus, ICalEventTransparency } from 'ical-generator';
 import { trackRequest } from 'lib/analytics';
 import { getCachedICS, getCoordinates, normalizeIcsParams, normalizeLocation, setCachedICS } from 'lib/cache';
 import { formatQiblaText } from 'lib/qibla';
@@ -97,6 +97,18 @@ export async function GET(request: NextRequest) {
   const hijriMode = (searchParams.get('hijri') || 'desc') as 'title' | 'desc' | 'both' | 'none';
   const hijriHolidays = searchParams.get('hijriHolidays') === 'true';
 
+  // Extract busy status parameter
+  const busy = searchParams.get('busy') === 'true';
+
+  // Extract weekdays parameter (comma-separated indices: 0=Sun, 1=Mon, ..., 6=Sat)
+  const weekdaysParam = searchParams.get('weekdays');
+  const allowedWeekDays = weekdaysParam
+    ? weekdaysParam
+        .split(',')
+        .map((v) => parseInt(v, 10))
+        .filter((v) => !Number.isNaN(v) && v >= 0 && v <= 6)
+    : [0, 1, 2, 3, 4, 5, 6]; // All days by default
+
   // Collect ALL request parameters for cache key generation
   const allRequestParams: Record<string, string> = {};
   for (const [key, value] of searchParams.entries()) {
@@ -136,6 +148,8 @@ export async function GET(request: NextRequest) {
         'qibla',
         'dua',
         'iqama',
+        'busy',
+        'weekdays',
       ].includes(key)
     ) {
       queryParams[key] = value;
@@ -287,6 +301,14 @@ export async function GET(request: NextRequest) {
       }
     };
 
+    // Helper function to set busy status on an event
+    const setBusyStatus = (event: any) => {
+      if (busy) {
+        event.transparency(ICalEventTransparency.OPAQUE);
+        event.busystatus(ICalEventBusyStatus.BUSY);
+      }
+    };
+
     // Compute Qibla direction text once if enabled
     let qiblaText = '';
     if (qiblaMode) {
@@ -304,11 +326,15 @@ export async function GET(request: NextRequest) {
     for (const day of days) {
       if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment.utc().tz(userTimezone), 'day')) continue;
 
+      // Check if current day is Friday for Jumu'ah mode
+      const dayDate = moment(day.date.gregorian.date, 'DD-MM-YYYY');
+
+      // Skip days not in allowedWeekDays
+      if (!allowedWeekDays.includes(dayDate.day())) continue;
+
       // Check if current day is in Ramadan for Ramadan mode
       const isRamadanDay = ramadanMode && isRamadan(day);
 
-      // Check if current day is Friday for Jumu'ah mode
-      const dayDate = moment(day.date.gregorian.date, 'DD-MM-YYYY');
       const isFriday = jumuahMode && dayDate.day() === 5;
 
       for (const [name, time] of Object.entries(day.timings)) {
@@ -381,6 +407,7 @@ export async function GET(request: NextRequest) {
         });
 
         addAlarmsToEvent(event, alarm);
+        setBusyStatus(event);
 
         // Create Iqama event if offset is set for this prayer
         const prayerIndex = allEvents.indexOf(name);
@@ -395,6 +422,7 @@ export async function GET(request: NextRequest) {
             timezone: day.meta.timezone,
           });
           addAlarmsToEvent(iqamaEvent, alarm);
+          setBusyStatus(iqamaEvent);
         }
 
         // Create separate Iftar and Tarawih events during Ramadan
@@ -410,6 +438,7 @@ export async function GET(request: NextRequest) {
             });
 
             addAlarmsToEvent(suhoorEvent, alarm);
+            setBusyStatus(suhoorEvent);
           }
 
           if (name === 'Maghrib') {
@@ -423,6 +452,7 @@ export async function GET(request: NextRequest) {
             });
 
             addAlarmsToEvent(iftarEvent, alarm);
+            setBusyStatus(iftarEvent);
           }
 
           if (name === 'Isha' && traweehDuration > 0) {
@@ -436,6 +466,7 @@ export async function GET(request: NextRequest) {
             });
 
             addAlarmsToEvent(tarawihEvent, alarm);
+            setBusyStatus(tarawihEvent);
           }
         }
       }

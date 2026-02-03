@@ -3,7 +3,13 @@ import type { NextRequest } from 'next/server';
 
 // --- Mocks ---
 
-const mockCreateEvent = mock(() => ({ createAlarm: mock(() => {}) }));
+const mockTransparency = mock(() => {});
+const mockBusyStatus = mock(() => {});
+const mockCreateEvent = mock(() => ({
+  createAlarm: mock(() => {}),
+  transparency: mockTransparency,
+  busystatus: mockBusyStatus,
+}));
 const mockMomentAdd = mock(function (this: any) {
   return this;
 });
@@ -20,6 +26,8 @@ function createMockMoment(): any {
     utc: mock(() => createMockMoment()),
     tz: mock(() => createMockMoment()),
     diff: mock(() => 12),
+    day: mock(() => 3), // Wednesday
+    dayOfYear: mock(() => 1),
   };
 }
 
@@ -43,6 +51,8 @@ mock.module('ical-generator', () => ({
   default: mockIcal,
   ICalAlarmType: { audio: 'audio' },
   ICalCalendarMethod: { PUBLISH: 'PUBLISH' },
+  ICalEventTransparency: { OPAQUE: 'OPAQUE', TRANSPARENT: 'TRANSPARENT' },
+  ICalEventBusyStatus: { BUSY: 'BUSY', FREE: 'FREE' },
 }));
 
 const mockGetPrayerTimes = mock(() => Promise.resolve(undefined as any));
@@ -132,6 +142,8 @@ const mockRamadanData = [
 describe('Prayer Times API', () => {
   beforeEach(() => {
     mockCreateEvent.mockClear();
+    mockTransparency.mockClear();
+    mockBusyStatus.mockClear();
     mockGetPrayerTimes.mockReset();
     mockGetPrayerTimes.mockResolvedValue({ data: mockPrayerData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
   });
@@ -300,5 +312,90 @@ describe('Prayer Times API', () => {
   test('defaults to English when lang not provided', async () => {
     await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5' }));
     expect(mockCreateEvent).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Fajr' }));
+  });
+
+  test('sets busy status when busy=true', async () => {
+    const mockEvent = {
+      createAlarm: mock(() => {}),
+      transparency: mock(() => {}),
+      busystatus: mock(() => {}),
+    };
+    mockCreateEvent.mockReturnValue(mockEvent);
+
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', busy: 'true' }));
+
+    expect(mockEvent.transparency).toHaveBeenCalledWith('OPAQUE');
+    expect(mockEvent.busystatus).toHaveBeenCalledWith('BUSY');
+  });
+
+  test('does not set busy status when busy param is not provided', async () => {
+    const mockEvent = {
+      createAlarm: mock(() => {}),
+      transparency: mock(() => {}),
+      busystatus: mock(() => {}),
+    };
+    mockCreateEvent.mockReturnValue(mockEvent);
+
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5' }));
+
+    expect(mockEvent.transparency).not.toHaveBeenCalled();
+    expect(mockEvent.busystatus).not.toHaveBeenCalled();
+  });
+
+  test('does not set busy status when busy=false', async () => {
+    const mockEvent = {
+      createAlarm: mock(() => {}),
+      transparency: mock(() => {}),
+      busystatus: mock(() => {}),
+    };
+    mockCreateEvent.mockReturnValue(mockEvent);
+
+    await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', busy: 'false' }));
+
+    expect(mockEvent.transparency).not.toHaveBeenCalled();
+    expect(mockEvent.busystatus).not.toHaveBeenCalled();
+  });
+
+  test('filters events by weekdays parameter', async () => {
+    const response = await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', weekdays: '1,3,5' }));
+    expect(response.status).toBe(200);
+  });
+
+  test('includes all days when weekdays parameter is not provided', async () => {
+    const response = await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5' }));
+    expect(response.status).toBe(200);
+  });
+
+  test('handles invalid weekdays values gracefully', async () => {
+    const response = await GET(createMockRequest({ address: 'Cairo, Egypt', method: '5', weekdays: '0,7,invalid,-1' }));
+    expect(response.status).toBe(200);
+  });
+
+  test('busy parameter works with Ramadan events', async () => {
+    mockGetPrayerTimes.mockResolvedValue({ data: mockRamadanData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
+
+    const mockEvent = {
+      createAlarm: mock(() => {}),
+      transparency: mock(() => {}),
+      busystatus: mock(() => {}),
+    };
+    mockCreateEvent.mockReturnValue(mockEvent);
+
+    await GET(
+      createMockRequest({
+        address: 'Cairo, Egypt',
+        method: '5',
+        ramadanMode: 'true',
+        iftarDuration: '30',
+        traweehDuration: '60',
+        suhoorDuration: '30',
+        busy: 'true',
+        lang: 'en',
+      }),
+    );
+
+    // Should be called for each event including Ramadan events
+    expect(mockEvent.transparency).toHaveBeenCalledWith('OPAQUE');
+    expect(mockEvent.busystatus).toHaveBeenCalledWith('BUSY');
   });
 });
