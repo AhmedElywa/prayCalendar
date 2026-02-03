@@ -42,7 +42,11 @@ export default async function CityPage({ params }: Props) {
   let timings: Record<string, string> | null = null;
   let hijriDate: { day: string; month: { en: string; ar: string }; year: string } | null = null;
   try {
-    const url = `https://api.aladhan.com/v1/timings?latitude=${city.latitude}&longitude=${city.longitude}&method=${city.method}`;
+    // Use date in URL to avoid 302 redirect issues with caching
+    const today = new Date()
+      .toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      .replace(/\//g, '-');
+    const url = `https://api.aladhan.com/v1/timings/${today}?latitude=${city.latitude}&longitude=${city.longitude}&method=${city.method}`;
     const res = await fetch(url, { next: { revalidate: 3600 } });
     const j = await res.json();
     if (j.code === 200) {
