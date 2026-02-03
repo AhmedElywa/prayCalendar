@@ -45,8 +45,22 @@ export async function setCoordinates(normalizedAddress: string, lat: number, lng
 
 /* ---- Key builders ---- */
 
-function prayerDataKey(location: string, method: number, school: number, yearMonth: string): string {
-  return `pt:${location}:${method}:${school}:${yearMonth}`;
+export interface L1KeyParams {
+  location: string;
+  method: number;
+  school: number;
+  shafaq: string;
+  tune: string;
+  midnightMode: number;
+  latitudeAdjustmentMethod: number;
+  adjustment: number;
+  yearMonth: string;
+}
+
+function prayerDataKey(params: L1KeyParams): string {
+  const { location, method, school, shafaq, tune, midnightMode, latitudeAdjustmentMethod, adjustment, yearMonth } =
+    params;
+  return `pt:${location}:${method}:${school}:${shafaq}:${tune}:${midnightMode}:${latitudeAdjustmentMethod}:${adjustment}:${yearMonth}`;
 }
 
 export function normalizeIcsParams(allParams: Record<string, string>, coords?: string): Record<string, string> {
@@ -78,9 +92,7 @@ function icsKey(allParams: Record<string, string>): string {
 /* ---- L1: Prayer data per month ---- */
 
 export async function getCachedMonths(
-  location: string,
-  method: number,
-  school: number,
+  baseParams: Omit<L1KeyParams, 'yearMonth'>,
   months: string[],
 ): Promise<{ cached: Map<string, Day[]>; missing: string[] }> {
   const cached = new Map<string, Day[]>();
@@ -90,7 +102,7 @@ export async function getCachedMonths(
   if (!redis) return { cached, missing: months };
 
   try {
-    const keys = months.map((m) => prayerDataKey(location, method, school, m));
+    const keys = months.map((m) => prayerDataKey({ ...baseParams, yearMonth: m }));
     const values = await redis.mGet(keys);
     for (let i = 0; i < months.length; i++) {
       if (values[i]) {
@@ -107,16 +119,14 @@ export async function getCachedMonths(
 }
 
 export async function setCachedMonth(
-  location: string,
-  method: number,
-  school: number,
+  baseParams: Omit<L1KeyParams, 'yearMonth'>,
   yearMonth: string,
   days: Day[],
 ): Promise<void> {
   const redis = await getRedis();
   if (!redis) return;
   try {
-    await redis.set(prayerDataKey(location, method, school, yearMonth), JSON.stringify(days), { EX: L1_TTL });
+    await redis.set(prayerDataKey({ ...baseParams, yearMonth }), JSON.stringify(days), { EX: L1_TTL });
   } catch {
     /* skip */
   }

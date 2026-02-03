@@ -1,4 +1,11 @@
-import { getCachedMonths, getCoordinates, normalizeLocation, setCachedMonth, setCoordinates } from 'lib/cache';
+import {
+  getCachedMonths,
+  getCoordinates,
+  type L1KeyParams,
+  normalizeLocation,
+  setCachedMonth,
+  setCoordinates,
+} from 'lib/cache';
 import moment from 'moment/moment';
 
 /* ------------------------------------------------------------------ */
@@ -253,8 +260,6 @@ export async function getPrayerTimes(
   }
 
   /* ---- resolve address → coordinates for cache key ---- */
-  const method = convertedParams.method;
-  const school = convertedParams.school;
   const addressKey = params.address ? normalizeLocation(params) : null;
   let location: string;
   let resolvedCoords: string | null = null;
@@ -267,7 +272,19 @@ export async function getPrayerTimes(
     location = normalizeLocation(params);
   }
 
-  const { cached, missing } = await getCachedMonths(location, method, school, neededMonths);
+  // Build L1 cache key params - includes ALL parameters that affect API results
+  const l1BaseParams: Omit<L1KeyParams, 'yearMonth'> = {
+    location,
+    method: convertedParams.method,
+    school: convertedParams.school,
+    shafaq: convertedParams.shafaq,
+    tune: params.tune || '',
+    midnightMode: convertedParams.midnightMode,
+    latitudeAdjustmentMethod: convertedParams.latitudeAdjustmentMethod,
+    adjustment: convertedParams.adjustment,
+  };
+
+  const { cached, missing } = await getCachedMonths(l1BaseParams, neededMonths);
 
   /* ---- fetch missing months ---- */
   if (missing.length > 0) {
@@ -296,8 +313,8 @@ export async function getPrayerTimes(
           setCoordinates(addressKey, meta.latitude, meta.longitude); // fire-and-forget
 
           // Re-key location to coordinates so L1 data is stored under coords
-          if (location !== resolvedCoords) {
-            location = resolvedCoords;
+          if (l1BaseParams.location !== resolvedCoords) {
+            l1BaseParams.location = resolvedCoords;
           }
         }
 
@@ -311,7 +328,7 @@ export async function getPrayerTimes(
 
         for (const [ym, monthDays] of byMonth) {
           cached.set(ym, monthDays);
-          setCachedMonth(location, method, school, ym, monthDays); // fire-and-forget
+          setCachedMonth(l1BaseParams, ym, monthDays); // fire-and-forget
         }
       } catch {
         return undefined;

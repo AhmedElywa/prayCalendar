@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cities, getCityBySlug } from '../../../constants/cities';
-import { getCachedMonths, normalizeLocation } from '../../../lib/cache';
+import { getCachedMonths, type L1KeyParams, normalizeLocation } from '../../../lib/cache';
 import CityPageClient from './CityPageClient';
 
 interface Props {
@@ -75,10 +75,21 @@ export default async function CityPage({ params }: Props) {
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const today = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-    const school = 0; // Standard school (Shafi'i)
+
+    // Build L1 cache key params with defaults for city pages
+    const l1Params: Omit<L1KeyParams, 'yearMonth'> = {
+      location,
+      method: city.method,
+      school: 0, // Standard school (Shafi'i)
+      shafaq: 'general',
+      tune: '',
+      midnightMode: 0,
+      latitudeAdjustmentMethod: 1,
+      adjustment: 0,
+    };
 
     // Try to get from Redis cache first
-    const { cached } = await getCachedMonths(location, city.method, school, [currentMonth]);
+    const { cached } = await getCachedMonths(l1Params, [currentMonth]);
     const monthData = cached.get(currentMonth);
 
     if (monthData) {
