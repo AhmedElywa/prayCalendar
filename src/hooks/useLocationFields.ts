@@ -9,6 +9,10 @@ export function useLocationFields() {
   const [latitude, setLatitude] = React.useState<number | ''>('');
   const [longitude, setLongitude] = React.useState<number | ''>('');
   const [locating, setLocating] = React.useState(false);
+  // Store coordinates and country from address autocomplete selection
+  const [selectedLat, setSelectedLat] = React.useState<number | null>(null);
+  const [selectedLng, setSelectedLng] = React.useState<number | null>(null);
+  const [countryCode, setCountryCode] = React.useState<string | null>(null);
 
   // reset opposite fields when mode toggles
   React.useEffect(() => {
@@ -17,8 +21,19 @@ export function useLocationFields() {
       setLongitude('');
     } else {
       setAddress('');
+      setSelectedLat(null);
+      setSelectedLng(null);
+      setCountryCode(null);
     }
   }, [inputMode]);
+
+  // Handle address autocomplete selection
+  const handleAddressSelect = React.useCallback((addr: string, lat: number, lng: number, country?: string) => {
+    setAddress(addr);
+    setSelectedLat(lat);
+    setSelectedLng(lng);
+    setCountryCode(country || null);
+  }, []);
 
   const handleUseLocation = React.useCallback(() => {
     if (!navigator.geolocation) return;
@@ -66,6 +81,11 @@ export function useLocationFields() {
     setLongitude,
     locating,
     handleUseLocation,
+    // Address autocomplete support
+    selectedLat,
+    selectedLng,
+    countryCode,
+    handleAddressSelect,
   };
 }
 
