@@ -1,3 +1,5 @@
+import type { Lang } from '../hooks/useLanguage';
+
 /**
  * Calculate Qibla direction from a given latitude/longitude.
  * Returns bearing in degrees (0-360) from North.
@@ -20,7 +22,8 @@ export function calculateQiblaBearing(lat: number, lng: number): number {
   return ((bearing % 360) + 360) % 360;
 }
 
-const compassPoints = {
+// Compass directions with language support (fallback to English for unsupported languages)
+const compassPoints: Record<string, string[]> = {
   en: ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'],
   ar: [
     'شمال',
@@ -40,16 +43,46 @@ const compassPoints = {
     'شمال غرب',
     'شمال شمال غرب',
   ],
+  tr: ['K', 'KKD', 'KD', 'DKD', 'D', 'DGD', 'GD', 'GGD', 'G', 'GGB', 'GB', 'BGB', 'B', 'BKB', 'KB', 'KKB'],
+  ur: [
+    'شمال',
+    'شمال شمال مشرق',
+    'شمال مشرق',
+    'مشرق شمال مشرق',
+    'مشرق',
+    'مشرق جنوب مشرق',
+    'جنوب مشرق',
+    'جنوب جنوب مشرق',
+    'جنوب',
+    'جنوب جنوب مغرب',
+    'جنوب مغرب',
+    'مغرب جنوب مغرب',
+    'مغرب',
+    'مغرب شمال مغرب',
+    'شمال مغرب',
+    'شمال شمال مغرب',
+  ],
 };
 
-export function bearingToCompass(bearing: number, lang: 'en' | 'ar'): string {
+const qiblaLabels: Record<string, string> = {
+  en: 'Qibla',
+  ar: 'اتجاه القبلة',
+  tr: 'Kıble',
+  fr: 'Qibla',
+  ur: 'قبلہ',
+  id: 'Kiblat',
+};
+
+export function bearingToCompass(bearing: number, lang: Lang): string {
   const index = Math.round(bearing / 22.5) % 16;
-  return compassPoints[lang][index];
+  const points = compassPoints[lang] || compassPoints.en;
+  return points[index];
 }
 
-export function formatQiblaText(lat: number, lng: number, lang: 'en' | 'ar'): string {
+export function formatQiblaText(lat: number, lng: number, lang: Lang): string {
   const bearing = calculateQiblaBearing(lat, lng);
   const compass = bearingToCompass(bearing, lang);
   const degrees = Math.round(bearing);
-  return lang === 'ar' ? `🕋 اتجاه القبلة: ${compass} (${degrees}°)` : `🕋 Qibla: ${compass} (${degrees}°)`;
+  const label = qiblaLabels[lang] || qiblaLabels.en;
+  return `🕋 ${label}: ${compass} (${degrees}°)`;
 }

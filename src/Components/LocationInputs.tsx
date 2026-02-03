@@ -1,5 +1,6 @@
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
+import { AddressAutocomplete } from './AddressAutocomplete';
 
 export default function LocationInputs() {
   const { lang, locationFields } = useAppContext();
@@ -14,6 +15,7 @@ export default function LocationInputs() {
     setLongitude,
     locating,
     handleUseLocation,
+    handleAddressSelect,
   } = locationFields;
   return (
     <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-card p-6 transition hover:border-[rgba(255,255,255,0.1)]">
@@ -54,22 +56,22 @@ export default function LocationInputs() {
         </button>
       </div>
 
-      {/* Address input */}
+      {/* Address input with autocomplete */}
       {inputMode === 'address' && (
         <div>
           <div className="relative">
-            <input
-              placeholder={translations[lang].addressPlaceholder}
-              className="w-full rounded-[var(--radius-sm)] border border-border-subtle bg-bg-secondary px-4 py-3 pe-12 text-sm text-text-primary outline-none transition placeholder:text-text-muted focus:border-gold focus:shadow-[0_0_0_3px_var(--gold-glow)]"
-              style={{ fontFamily: 'var(--font-sans)' }}
+            <AddressAutocomplete
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={setAddress}
+              onSelect={handleAddressSelect}
+              placeholder={translations[lang].addressPlaceholder}
+              className="pe-12"
             />
             <button
               type="button"
               onClick={handleUseLocation}
               disabled={locating}
-              className="absolute end-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] border-none bg-gold-glow text-gold transition hover:bg-[rgba(212,175,105,0.25)] disabled:opacity-50"
+              className="absolute end-1 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] border-none bg-gold-glow text-gold transition hover:bg-[rgba(212,175,105,0.25)] disabled:opacity-50"
               title={translations[lang].useLocation}
             >
               {locating ? (

@@ -1,13 +1,26 @@
+import type { Lang } from '../hooks/useLanguage';
+
+export interface TranslatedText {
+  en: string;
+  ar: string;
+  [key: string]: string; // Allow indexing by other Lang values
+}
+
 export interface City {
   slug: string;
-  name: { en: string; ar: string };
-  country: { en: string; ar: string };
+  name: TranslatedText;
+  country: TranslatedText;
   flag: string; // Country flag emoji
   latitude: number;
   longitude: number;
   timezone: string;
   method: number; // AlAdhan calculation method
   population?: number; // for sorting
+}
+
+// Helper to get translated text with fallback to English
+export function getTranslatedText(text: TranslatedText, lang: Lang): string {
+  return text[lang] || text.en;
 }
 
 export const cities: City[] = [

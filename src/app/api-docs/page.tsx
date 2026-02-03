@@ -123,6 +123,21 @@ const params = [
     default: '30',
     description: 'Duration of Suhoor event in minutes. Only used when ramadanMode=true.',
   },
+  {
+    name: 'hijri',
+    type: 'string',
+    required: 'No',
+    default: 'desc',
+    description:
+      'Where to display the Hijri date: "title" (in event title), "desc" (in description), "both", or "none".',
+  },
+  {
+    name: 'hijriHolidays',
+    type: 'boolean',
+    required: 'No',
+    default: 'false',
+    description: 'Include Islamic holidays (Eid, etc.) in the event description when applicable.',
+  },
 ];
 
 const examples = [
@@ -250,6 +265,18 @@ export default function ApiDocsPage() {
             <li>
               <code className="rounded bg-bg-secondary px-1 font-mono text-xs text-gold">lang=ar</code> — Arabic output
             </li>
+            <li>
+              <code className="rounded bg-bg-secondary px-1 font-mono text-xs text-gold">format=webhook</code> —
+              detailed timings with ISO timestamps, Unix timestamps, and server time
+            </li>
+            <li>
+              <code className="rounded bg-bg-secondary px-1 font-mono text-xs text-gold">format=slack</code> —
+              pre-formatted Slack Block Kit message
+            </li>
+            <li>
+              <code className="rounded bg-bg-secondary px-1 font-mono text-xs text-gold">format=discord</code> —
+              pre-formatted Discord embed message
+            </li>
           </ul>
           <p className="mb-2 text-sm font-medium text-text-secondary">Example response:</p>
           <pre className="overflow-x-auto rounded-[var(--radius-sm)] bg-bg-secondary px-4 py-3 font-mono text-xs text-text-secondary">{`{
@@ -257,15 +284,42 @@ export default function ApiDocsPage() {
     "gregorian": "03-02-2026",
     "hijri": { "day": "15", "month": { "number": 8, "en": "Shaʿbān", "ar": "شَعْبَان" }, "year": "1447" }
   },
-  "location": { "latitude": 30.0444, "longitude": 31.2357, "address": "Cairo, Egypt" },
+  "location": { "latitude": 30.0444, "longitude": 31.2357, "timezone": "Africa/Cairo", "address": "Cairo, Egypt" },
   "method": "5",
   "timings": {
     "Fajr": "05:23", "Sunrise": "06:50", "Dhuhr": "12:12",
     "Asr": "15:17", "Maghrib": "17:34", "Isha": "18:53", "Midnight": "23:42"
   },
-  "nextPrayer": { "name": "Dhuhr", "time": "12:12" }
+  "nextPrayer": {
+    "name": "Dhuhr", "time": "12:12",
+    "iso": "2026-02-03T12:12:00.000Z", "timestamp": 1770120720, "minutesUntil": 45
+  }
 }`}</pre>
           <p className="mt-3 text-sm text-text-muted">CORS is enabled. Responses are cached for 1 hour.</p>
+        </section>
+
+        {/* Integrations */}
+        <section className="mb-8 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-card p-6">
+          <h2 className="mb-3 text-xl font-semibold text-text-primary">Integrations</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <a
+              href="/integrations/home-assistant"
+              className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border-subtle bg-bg-secondary p-4 transition-colors hover:border-border-default"
+            >
+              <span className="text-2xl">🏠</span>
+              <div>
+                <p className="font-medium text-text-primary">Home Assistant</p>
+                <p className="text-sm text-text-muted">RESTful sensors &amp; automations</p>
+              </div>
+            </a>
+            <div className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border-subtle bg-bg-secondary p-4 opacity-50">
+              <span className="text-2xl">🔗</span>
+              <div>
+                <p className="font-medium text-text-primary">IFTTT / Zapier</p>
+                <p className="text-sm text-text-muted">Coming soon</p>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Rate limits */}

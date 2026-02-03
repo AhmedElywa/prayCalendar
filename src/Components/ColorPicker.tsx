@@ -1,20 +1,29 @@
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
+import type { Lang } from '../hooks/useLanguage';
 
-export const CALENDAR_COLORS = [
-  { hex: '#1BADF8', en: 'Blue', ar: 'ازرق' },
-  { hex: '#2DC653', en: 'Green', ar: 'اخضر' },
-  { hex: '#17BEBB', en: 'Teal', ar: 'ازرق مخضر' },
-  { hex: '#9B59B6', en: 'Purple', ar: 'بنفسجي' },
-  { hex: '#E74C3C', en: 'Red', ar: 'احمر' },
-  { hex: '#F39C12', en: 'Orange', ar: 'برتقالي' },
-  { hex: '#E91E63', en: 'Pink', ar: 'وردي' },
-  { hex: '#795548', en: 'Brown', ar: 'بني' },
-  { hex: '#D4AF37', en: 'Gold', ar: 'ذهبي' },
-  { hex: '#1B5E20', en: 'Dark Green', ar: 'اخضر غامق' },
-  { hex: '#1A237E', en: 'Navy', ar: 'كحلي' },
-  { hex: '#607D8B', en: 'Gray', ar: 'رمادي' },
+export const CALENDAR_COLORS: Array<{ hex: string } & Record<Lang, string>> = [
+  { hex: '#1BADF8', en: 'Blue', ar: 'ازرق', tr: 'Mavi', fr: 'Bleu', ur: 'نیلا', id: 'Biru' },
+  { hex: '#2DC653', en: 'Green', ar: 'اخضر', tr: 'Yeşil', fr: 'Vert', ur: 'سبز', id: 'Hijau' },
+  { hex: '#17BEBB', en: 'Teal', ar: 'ازرق مخضر', tr: 'Turkuaz', fr: 'Sarcelle', ur: 'فیروزی', id: 'Teal' },
+  { hex: '#9B59B6', en: 'Purple', ar: 'بنفسجي', tr: 'Mor', fr: 'Violet', ur: 'جامنی', id: 'Ungu' },
+  { hex: '#E74C3C', en: 'Red', ar: 'احمر', tr: 'Kırmızı', fr: 'Rouge', ur: 'سرخ', id: 'Merah' },
+  { hex: '#F39C12', en: 'Orange', ar: 'برتقالي', tr: 'Turuncu', fr: 'Orange', ur: 'نارنجی', id: 'Oranye' },
+  { hex: '#E91E63', en: 'Pink', ar: 'وردي', tr: 'Pembe', fr: 'Rose', ur: 'گلابی', id: 'Merah muda' },
+  { hex: '#795548', en: 'Brown', ar: 'بني', tr: 'Kahverengi', fr: 'Marron', ur: 'بھورا', id: 'Cokelat' },
+  { hex: '#D4AF37', en: 'Gold', ar: 'ذهبي', tr: 'Altın', fr: 'Or', ur: 'سنہری', id: 'Emas' },
+  {
+    hex: '#1B5E20',
+    en: 'Dark Green',
+    ar: 'اخضر غامق',
+    tr: 'Koyu Yeşil',
+    fr: 'Vert foncé',
+    ur: 'گہرا سبز',
+    id: 'Hijau tua',
+  },
+  { hex: '#1A237E', en: 'Navy', ar: 'كحلي', tr: 'Lacivert', fr: 'Bleu marine', ur: 'نیوی', id: 'Navy' },
+  { hex: '#607D8B', en: 'Gray', ar: 'رمادي', tr: 'Gri', fr: 'Gris', ur: 'سرمئی', id: 'Abu-abu' },
 ];
 
 interface ColorPickerProps {

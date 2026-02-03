@@ -92,6 +92,11 @@ export async function GET(request: NextRequest) {
   const traweehDuration = parseInt(searchParams.get('traweehDuration') || '60', 10);
   const suhoorDuration = parseInt(searchParams.get('suhoorDuration') || '30', 10);
 
+  // Extract Hijri display parameters
+  // hijri: 'title' | 'desc' | 'both' | 'none' (default: 'desc')
+  const hijriMode = (searchParams.get('hijri') || 'desc') as 'title' | 'desc' | 'both' | 'none';
+  const hijriHolidays = searchParams.get('hijriHolidays') === 'true';
+
   // Collect ALL request parameters for cache key generation
   const allRequestParams: Record<string, string> = {};
   for (const [key, value] of searchParams.entries()) {
@@ -336,15 +341,28 @@ export async function GET(request: NextRequest) {
         // Keep original prayer durations even in Ramadan mode
         // We'll create separate events for Iftar and Tarawih below
 
-        // Build description with hijri date and qasr info
+        // Build Hijri date string
         const hijri = day.date?.hijri;
         const hijriStr = hijri
           ? lang === 'ar'
             ? `${hijri.day} ${hijri.month?.ar || hijri.month?.en} ${hijri.year}`
             : `${hijri.day} ${hijri.month?.en} ${hijri.year}`
           : '';
+
+        // Build event title with optional Hijri date
+        const eventTitle =
+          (hijriMode === 'title' || hijriMode === 'both') && hijriStr ? `${eventName} (${hijriStr})` : eventName;
+
+        // Build description with optional hijri date, holidays, qasr info, etc.
         const descParts: string[] = [];
-        if (hijriStr) descParts.push(hijriStr);
+        if ((hijriMode === 'desc' || hijriMode === 'both') && hijriStr) {
+          descParts.push(hijriStr);
+        }
+        // Add Hijri holidays if enabled and present
+        if (hijriHolidays && hijri?.holidays && hijri.holidays.length > 0) {
+          const holidayStr = hijri.holidays.join(', ');
+          descParts.push(lang === 'ar' ? `🎉 ${holidayStr}` : `🎉 ${holidayStr}`);
+        }
         if (qiblaText) descParts.push(qiblaText);
         if (isQasr) descParts.push(lang === 'ar' ? 'صلاة مقصورة (قصر) - ركعتان' : "Shortened prayer (Qasr) - 2 rak'at");
         if (duaMode) {
@@ -357,7 +375,7 @@ export async function GET(request: NextRequest) {
         const event = calendar.createEvent({
           start: startDate,
           end: moment(startDate).add(eventDuration, 'minute').toDate(),
-          summary: eventName,
+          summary: eventTitle,
           timezone: day.meta.timezone,
           ...(descParts.length > 0 && { description: descParts.join('\n') }),
         });

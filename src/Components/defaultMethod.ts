@@ -1,4 +1,14 @@
-export default [
+import type { Lang } from '../hooks/useLanguage';
+
+// Helper to get label with fallback to English
+type MethodLabel = { en: string; ar: string; [key: string]: string };
+export type MethodEntry = { value: number; label: MethodLabel };
+
+export function getMethodLabel(label: MethodLabel, lang: Lang): string {
+  return label[lang] || label.en;
+}
+
+const methods: MethodEntry[] = [
   { value: 0, label: { en: 'Shia Ithna-Ansari', ar: 'الشيعة الإثنا عشرية' } },
   { value: 1, label: { en: 'University of Islamic Sciences, Karachi', ar: 'جامعة العلوم الإسلامية، كراتشي' } },
   { value: 2, label: { en: 'Islamic Society of North America', ar: 'الجمعية الإسلامية لأمريكا الشمالية' } },
@@ -38,3 +48,5 @@ export default [
     },
   },
 ];
+
+export default methods;

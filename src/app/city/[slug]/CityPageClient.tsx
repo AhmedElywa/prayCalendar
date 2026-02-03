@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import PageLayout from '../../../Components/PageLayout';
-import { type City, cities } from '../../../constants/cities';
+import { type City, cities, getTranslatedText } from '../../../constants/cities';
 import { translations } from '../../../constants/translations';
 import { useAppContext } from '../../../contexts/AppContext';
 
@@ -26,8 +26,8 @@ const prayerNamesAr: Record<string, string> = {
 export default function CityPageClient({ city, timings, hijriDate }: Props) {
   const { lang } = useAppContext();
   const t = translations[lang];
-  const cityName = city.name[lang] || city.name.en;
-  const countryName = city.country[lang] || city.country.en;
+  const cityName = getTranslatedText(city.name, lang);
+  const countryName = getTranslatedText(city.country, lang);
 
   const subscribeUrl = `webcal://pray.ahmedelywa.com/api/prayer-times.ics?latitude=${city.latitude}&longitude=${city.longitude}&method=${city.method}&lang=${lang}`;
 
@@ -170,7 +170,7 @@ export default function CityPageClient({ city, timings, hijriDate }: Props) {
                   href={`/city/${c.slug}`}
                   className="rounded-[var(--radius-sm)] border border-border-subtle bg-bg-card p-3 text-center text-sm font-medium text-text-secondary transition hover:border-border-accent hover:text-gold"
                 >
-                  {c.name[lang] || c.name.en}
+                  {getTranslatedText(c.name, lang)}
                 </Link>
               ))}
             </div>
@@ -189,8 +189,8 @@ export default function CityPageClient({ city, timings, hijriDate }: Props) {
                 href={`/city/${c.slug}`}
                 className="rounded-[var(--radius-sm)] border border-border-subtle bg-bg-card p-3 text-sm transition hover:border-border-accent hover:text-gold"
               >
-                <span className="font-medium text-text-secondary">{c.name[lang] || c.name.en}</span>
-                <span className="block text-xs text-text-muted">{c.country[lang] || c.country.en}</span>
+                <span className="font-medium text-text-secondary">{getTranslatedText(c.name, lang)}</span>
+                <span className="block text-xs text-text-muted">{getTranslatedText(c.country, lang)}</span>
               </Link>
             ))}
           </div>

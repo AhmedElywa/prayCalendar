@@ -1,13 +1,14 @@
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
-import defaultMethod from './defaultMethod';
+import defaultMethod, { getMethodLabel } from './defaultMethod';
 
 export interface MethodSelectProps {
   method: string;
   setMethod: (method: string) => void;
+  recommendation?: { method: string; name: string } | null;
 }
 
-export function MethodSelectFields({ method, setMethod }: MethodSelectProps) {
+export function MethodSelectFields({ method, setMethod, recommendation }: MethodSelectProps) {
   const { lang } = useAppContext();
   return (
     <>
@@ -28,11 +29,24 @@ export function MethodSelectFields({ method, setMethod }: MethodSelectProps) {
         >
           {defaultMethod.map((m) => (
             <option key={m.value} value={m.value}>
-              {m.label[lang]}
+              {getMethodLabel(m.label, lang)}
             </option>
           ))}
         </select>
       </div>
+      {recommendation && method !== recommendation.method && (
+        <button
+          type="button"
+          onClick={() => setMethod(recommendation.method)}
+          className="mt-2 flex items-center gap-1.5 rounded-[var(--radius-sm)] bg-gold-glow px-3 py-1.5 text-xs text-gold hover:bg-[rgba(212,175,105,0.25)] transition"
+        >
+          <span>💡</span>
+          <span>
+            {lang === 'ar' ? 'موصى به لموقعك:' : 'Recommended for your location:'}{' '}
+            <span className="font-medium">{recommendation.name}</span>
+          </span>
+        </button>
+      )}
     </>
   );
 }

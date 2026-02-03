@@ -4,6 +4,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { useCallback, useRef, useState } from 'react';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
+import { getCalendarAppInfo, useCalendarDetection } from '../hooks/useCalendarDetection';
 import ColorPicker from './ColorPicker';
 import InstructionsSection from './InstructionsSection';
 
@@ -27,6 +28,10 @@ export default function CalendarIntegration({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [copied, setCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
+
+  // Detect user's calendar app
+  const { detected: detectedCalendar, loading: calendarLoading } = useCalendarDetection();
+  const calendarInfo = getCalendarAppInfo(detectedCalendar, lang as 'en' | 'ar');
 
   const webcalUrl = link.replace('https://', 'webcal://').replace('http://', 'webcal://');
 
@@ -58,6 +63,26 @@ export default function CalendarIntegration({
     a.download = 'prayer-calendar-qr.png';
     a.click();
   }, []);
+
+  const handleDownloadIcs = useCallback(async () => {
+    if (!link) return;
+    try {
+      const response = await fetch(link);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // Generate filename from location
+      const locationName = locationFields.address || `${locationFields.latitude}_${locationFields.longitude}`;
+      const safeName = locationName.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 30);
+      a.download = `prayer-times-${safeName}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: open link directly
+      window.open(link, '_blank');
+    }
+  }, [link, locationFields]);
 
   const handleCopy = () => {
     copy(link);
@@ -279,13 +304,35 @@ export default function CalendarIntegration({
             </button>
           </div>
 
-          {/* Primary button */}
-          <div className="mt-4 mb-4">
+          {/* Primary buttons - Smart detection shows detected calendar app */}
+          <div className="mt-4 mb-4 flex gap-3">
             <button
-              onClick={() => handleCalendarClick('device')}
-              className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-sm)] bg-gold px-4 py-3 text-sm font-semibold text-bg-primary transition hover:bg-gold-light"
+              onClick={() =>
+                handleCalendarClick(
+                  detectedCalendar === 'apple'
+                    ? 'apple'
+                    : detectedCalendar === 'google'
+                      ? 'google'
+                      : detectedCalendar === 'outlook'
+                        ? 'outlook'
+                        : 'device',
+                )
+              }
+              className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-sm)] bg-gold px-4 py-3 text-sm font-semibold text-bg-primary transition hover:bg-gold-light"
             >
-              📥 {translations[lang].addToDevice}
+              {calendarLoading ? '📥' : calendarInfo.icon}{' '}
+              {calendarLoading
+                ? translations[lang].addToDevice
+                : lang === 'ar'
+                  ? `إضافة إلى ${calendarInfo.name}`
+                  : `Add to ${calendarInfo.name}`}
+            </button>
+            <button
+              onClick={handleDownloadIcs}
+              className="flex items-center justify-center gap-2 rounded-[var(--radius-sm)] border border-border-subtle bg-bg-secondary px-4 py-3 text-sm font-medium text-text-secondary transition hover:border-border-accent hover:text-text-primary"
+              title={lang === 'ar' ? 'تحميل ملف ICS' : 'Download ICS file'}
+            >
+              ⬇️
             </button>
           </div>
 
