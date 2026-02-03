@@ -132,3 +132,8 @@ dist
 
 build
 public/sw.js
+
+# Playwright
+.playwright-mcp/
+playwright-report/
+test-results/
