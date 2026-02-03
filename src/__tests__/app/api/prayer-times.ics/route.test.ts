@@ -5,10 +5,12 @@ import type { NextRequest } from 'next/server';
 
 const mockTransparency = mock(() => {});
 const mockBusyStatus = mock(() => {});
+const mockEventX = mock(() => {});
 const mockCreateEvent = mock(() => ({
   createAlarm: mock(() => {}),
   transparency: mockTransparency,
   busystatus: mockBusyStatus,
+  x: mockEventX,
 }));
 const mockMomentAdd = mock(function (this: any) {
   return this;
@@ -144,6 +146,7 @@ describe('Prayer Times API', () => {
     mockCreateEvent.mockClear();
     mockTransparency.mockClear();
     mockBusyStatus.mockClear();
+    mockEventX.mockClear();
     mockGetPrayerTimes.mockReset();
     mockGetPrayerTimes.mockResolvedValue({ data: mockPrayerData, resolvedCoords: null, apiCalls: 0, apiErrors: 0 });
   });
@@ -319,6 +322,7 @@ describe('Prayer Times API', () => {
       createAlarm: mock(() => {}),
       transparency: mock(() => {}),
       busystatus: mock(() => {}),
+      x: mock(() => {}),
     };
     mockCreateEvent.mockReturnValue(mockEvent);
 
@@ -326,6 +330,11 @@ describe('Prayer Times API', () => {
 
     expect(mockEvent.transparency).toHaveBeenCalledWith('OPAQUE');
     expect(mockEvent.busystatus).toHaveBeenCalledWith('BUSY');
+    // Should set Microsoft CDO properties for Outlook compatibility
+    expect(mockEvent.x).toHaveBeenCalledWith([
+      { key: 'X-MICROSOFT-CDO-INTENDEDSTATUS', value: 'BUSY' },
+      { key: 'X-MICROSOFT-MSNCALENDAR-BUSYSTATUS', value: 'BUSY' },
+    ]);
   });
 
   test('does not set busy status when busy param is not provided', async () => {
@@ -333,6 +342,7 @@ describe('Prayer Times API', () => {
       createAlarm: mock(() => {}),
       transparency: mock(() => {}),
       busystatus: mock(() => {}),
+      x: mock(() => {}),
     };
     mockCreateEvent.mockReturnValue(mockEvent);
 
@@ -340,6 +350,7 @@ describe('Prayer Times API', () => {
 
     expect(mockEvent.transparency).not.toHaveBeenCalled();
     expect(mockEvent.busystatus).not.toHaveBeenCalled();
+    expect(mockEvent.x).not.toHaveBeenCalled();
   });
 
   test('does not set busy status when busy=false', async () => {
@@ -347,6 +358,7 @@ describe('Prayer Times API', () => {
       createAlarm: mock(() => {}),
       transparency: mock(() => {}),
       busystatus: mock(() => {}),
+      x: mock(() => {}),
     };
     mockCreateEvent.mockReturnValue(mockEvent);
 
@@ -354,6 +366,7 @@ describe('Prayer Times API', () => {
 
     expect(mockEvent.transparency).not.toHaveBeenCalled();
     expect(mockEvent.busystatus).not.toHaveBeenCalled();
+    expect(mockEvent.x).not.toHaveBeenCalled();
   });
 
   test('filters events by weekdays parameter', async () => {
@@ -378,6 +391,7 @@ describe('Prayer Times API', () => {
       createAlarm: mock(() => {}),
       transparency: mock(() => {}),
       busystatus: mock(() => {}),
+      x: mock(() => {}),
     };
     mockCreateEvent.mockReturnValue(mockEvent);
 
@@ -397,5 +411,9 @@ describe('Prayer Times API', () => {
     // Should be called for each event including Ramadan events
     expect(mockEvent.transparency).toHaveBeenCalledWith('OPAQUE');
     expect(mockEvent.busystatus).toHaveBeenCalledWith('BUSY');
+    expect(mockEvent.x).toHaveBeenCalledWith([
+      { key: 'X-MICROSOFT-CDO-INTENDEDSTATUS', value: 'BUSY' },
+      { key: 'X-MICROSOFT-MSNCALENDAR-BUSYSTATUS', value: 'BUSY' },
+    ]);
   });
 });

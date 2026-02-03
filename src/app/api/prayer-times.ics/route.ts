@@ -304,8 +304,19 @@ export async function GET(request: NextRequest) {
     // Helper function to set busy status on an event
     const setBusyStatus = (event: any) => {
       if (busy) {
+        // Standard iCalendar property (RFC 5545)
         event.transparency(ICalEventTransparency.OPAQUE);
+
+        // Microsoft Outlook property (via ical-generator)
         event.busystatus(ICalEventBusyStatus.BUSY);
+
+        // Microsoft CDO properties for better Outlook compatibility
+        // Per MS-OXCICAL spec, both BUSYSTATUS and INTENDEDSTATUS are needed
+        // X-MICROSOFT-MSNCALENDAR-BUSYSTATUS is a legacy synonym for older Outlook versions
+        event.x([
+          { key: 'X-MICROSOFT-CDO-INTENDEDSTATUS', value: 'BUSY' },
+          { key: 'X-MICROSOFT-MSNCALENDAR-BUSYSTATUS', value: 'BUSY' },
+        ]);
       }
     };
 
