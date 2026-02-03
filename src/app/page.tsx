@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import CalendarIntegration from '../Components/CalendarIntegration';
+import IntegrationsShowcase from '../Components/IntegrationsShowcase';
 import LocationInputs from '../Components/LocationInputs';
 import MethodAndSettings from '../Components/MethodAndSettings';
 import PageLayout from '../Components/PageLayout';
@@ -127,13 +128,14 @@ export default function HomePage() {
       if (!Number.isNaN(latNum) && !Number.isNaN(lngNum)) {
         locationFields.setLatitude(latNum);
         locationFields.setLongitude(lngNum);
+        locationFields.setInputMode('coords'); // Switch to coordinates tab
       }
     }
     if (methodParam) {
       setMethod(methodParam);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locationFields.setAddress, locationFields.setLatitude, locationFields.setLongitude]);
+  }, [locationFields.setAddress, locationFields.setLatitude, locationFields.setLongitude, locationFields.setInputMode]);
 
   const generatePresetUrl = useCallback(() => {
     const preset: PresetData = {
@@ -194,14 +196,29 @@ export default function HomePage() {
   const ramadanParam = ramadanMode
     ? `&ramadanMode=true&iftarDuration=${iftarDuration}&traweehDuration=${traweehDuration}&suhoorDuration=${suhoorDuration}`
     : '';
+  // Use coordinates from autocomplete selection when available (avoids redundant geocoding)
   const locationParam =
     locationFields.inputMode === 'address'
-      ? `address=${encodeURIComponent(locationFields.address)}`
+      ? locationFields.selectedLat !== null && locationFields.selectedLng !== null
+        ? `latitude=${locationFields.selectedLat}&longitude=${locationFields.selectedLng}`
+        : `address=${encodeURIComponent(locationFields.address)}`
       : `latitude=${locationFields.latitude}&longitude=${locationFields.longitude}`;
 
   const link = baseUrl
     ? `${baseUrl}/api/prayer-times.ics?${locationParam}&method=${method}${alarmParam}&duration=${duration}${monthsParam}${eventsParam}${ramadanParam}${travelParam}${jumuahParam}${qiblaParam}${duaParam}${iqamaParam}${colorParam}&lang=${prayerLanguage}`
     : '';
+
+  // Use coordinates from autocomplete selection for preview when available
+  const previewLatitude =
+    locationFields.inputMode === 'address' && locationFields.selectedLat !== null
+      ? locationFields.selectedLat
+      : locationFields.latitude;
+  const previewLongitude =
+    locationFields.inputMode === 'address' && locationFields.selectedLng !== null
+      ? locationFields.selectedLng
+      : locationFields.longitude;
+  const previewInputMode =
+    locationFields.inputMode === 'address' && locationFields.selectedLat !== null ? 'coords' : locationFields.inputMode;
 
   const {
     loading: loadingNext,
@@ -209,25 +226,35 @@ export default function HomePage() {
     todayTimings,
     hijriDate,
   } = useTimingsPreview({
-    inputMode: locationFields.inputMode,
+    inputMode: previewInputMode,
     address: locationFields.address,
-    latitude: locationFields.latitude,
-    longitude: locationFields.longitude,
+    latitude: previewLatitude,
+    longitude: previewLongitude,
     method,
     lang,
   });
 
-  // Calculate Qibla direction (needs coordinates)
+  // Calculate Qibla direction (needs coordinates - use selected coords from autocomplete when available)
   const qiblaDirection = useMemo(() => {
-    const lat = typeof locationFields.latitude === 'number' ? locationFields.latitude : null;
-    const lng = typeof locationFields.longitude === 'number' ? locationFields.longitude : null;
+    const lat =
+      typeof previewLatitude === 'number'
+        ? previewLatitude
+        : typeof locationFields.latitude === 'number'
+          ? locationFields.latitude
+          : null;
+    const lng =
+      typeof previewLongitude === 'number'
+        ? previewLongitude
+        : typeof locationFields.longitude === 'number'
+          ? locationFields.longitude
+          : null;
     if (lat === null || lng === null) return null;
     const bearing = calculateQiblaBearing(lat, lng);
     return {
       bearing: Math.round(bearing),
       compass: bearingToCompass(bearing, lang),
     };
-  }, [locationFields.latitude, locationFields.longitude, lang]);
+  }, [previewLatitude, previewLongitude, locationFields.latitude, locationFields.longitude, lang]);
 
   return (
     <PageLayout>
@@ -339,6 +366,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Integrations Showcase Section */}
+      <IntegrationsShowcase />
     </PageLayout>
   );
 }
