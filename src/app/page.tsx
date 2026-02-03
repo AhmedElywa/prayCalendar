@@ -86,30 +86,52 @@ export default function HomePage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
+
+    // Check for encoded preset first
     const presetStr = params.get('preset');
-    if (!presetStr) return;
-    const p = decodePreset(presetStr);
-    if (!p) return;
-    if (p.address) locationFields.setAddress(p.address);
-    if (p.latitude !== undefined) locationFields.setLatitude(p.latitude);
-    if (p.longitude !== undefined) locationFields.setLongitude(p.longitude);
-    if (p.method) setMethod(p.method);
-    if (p.duration) setDuration(p.duration);
-    if (p.months) setMonths(p.months);
-    if (p.alarms) setAlarms(p.alarms);
-    if (p.events) setSelectedEvents(p.events);
-    if (p.travelMode !== undefined) setTravelMode(p.travelMode);
-    if (p.jumuahMode !== undefined) setJumuahMode(p.jumuahMode);
-    if (p.jumuahDuration) setJumuahDuration(p.jumuahDuration);
-    if (p.ramadanMode !== undefined) setRamadanMode(p.ramadanMode);
-    if (p.iftarDuration) setIftarDuration(p.iftarDuration);
-    if (p.traweehDuration !== undefined) setTraweehDuration(p.traweehDuration);
-    if (p.suhoorDuration !== undefined) setSuhoorDuration(p.suhoorDuration);
-    if (p.qiblaMode !== undefined) setQiblaMode(p.qiblaMode);
-    if (p.duaMode !== undefined) setDuaMode(p.duaMode);
-    if (p.iqamaOffsets) setIqamaOffsets(p.iqamaOffsets);
-    if (p.calendarColor) setCalendarColor(p.calendarColor);
-    if (p.prayerLanguage) setPrayerLanguage(p.prayerLanguage as Lang);
+    if (presetStr) {
+      const p = decodePreset(presetStr);
+      if (p) {
+        if (p.address) locationFields.setAddress(p.address);
+        if (p.latitude !== undefined) locationFields.setLatitude(p.latitude);
+        if (p.longitude !== undefined) locationFields.setLongitude(p.longitude);
+        if (p.method) setMethod(p.method);
+        if (p.duration) setDuration(p.duration);
+        if (p.months) setMonths(p.months);
+        if (p.alarms) setAlarms(p.alarms);
+        if (p.events) setSelectedEvents(p.events);
+        if (p.travelMode !== undefined) setTravelMode(p.travelMode);
+        if (p.jumuahMode !== undefined) setJumuahMode(p.jumuahMode);
+        if (p.jumuahDuration) setJumuahDuration(p.jumuahDuration);
+        if (p.ramadanMode !== undefined) setRamadanMode(p.ramadanMode);
+        if (p.iftarDuration) setIftarDuration(p.iftarDuration);
+        if (p.traweehDuration !== undefined) setTraweehDuration(p.traweehDuration);
+        if (p.suhoorDuration !== undefined) setSuhoorDuration(p.suhoorDuration);
+        if (p.qiblaMode !== undefined) setQiblaMode(p.qiblaMode);
+        if (p.duaMode !== undefined) setDuaMode(p.duaMode);
+        if (p.iqamaOffsets) setIqamaOffsets(p.iqamaOffsets);
+        if (p.calendarColor) setCalendarColor(p.calendarColor);
+        if (p.prayerLanguage) setPrayerLanguage(p.prayerLanguage as Lang);
+        return;
+      }
+    }
+
+    // Fall back to direct query params (from city page "Customize Settings" link)
+    const lat = params.get('latitude');
+    const lng = params.get('longitude');
+    const methodParam = params.get('method');
+
+    if (lat && lng) {
+      const latNum = Number.parseFloat(lat);
+      const lngNum = Number.parseFloat(lng);
+      if (!Number.isNaN(latNum) && !Number.isNaN(lngNum)) {
+        locationFields.setLatitude(latNum);
+        locationFields.setLongitude(lngNum);
+      }
+    }
+    if (methodParam) {
+      setMethod(methodParam);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationFields.setAddress, locationFields.setLatitude, locationFields.setLongitude]);
 
