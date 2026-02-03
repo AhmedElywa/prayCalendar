@@ -1,5 +1,6 @@
 import { ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getMethodRecommendation } from '../constants/methodRecommendations';
 import { alarmOptionsData, eventNames } from '../constants/prayerData';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
@@ -132,7 +133,12 @@ export default function MethodAndSettings({
   setSuhoorDuration,
   onAdvancedValidationChange,
 }: MethodAndSettingsProps) {
-  const { lang } = useAppContext();
+  const { lang, locationFields } = useAppContext();
+
+  // Get method recommendation based on selected location's country
+  const methodRecommendation = useMemo(() => {
+    return getMethodRecommendation(locationFields.countryCode);
+  }, [locationFields.countryCode]);
 
   const [durationError, setDurationError] = useState('');
   const [monthsError, setMonthsError] = useState('');
@@ -240,10 +246,10 @@ export default function MethodAndSettings({
 
       <div className="space-y-4">
         {/* Method selection */}
-        <MethodSelectFields method={method} setMethod={setMethod} />
+        <MethodSelectFields method={method} setMethod={setMethod} recommendation={methodRecommendation} />
 
         {/* Duration and months */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-text-muted">
               {translations[lang].duration}
@@ -262,9 +268,9 @@ export default function MethodAndSettings({
                   setDurationError(validateDuration(durationValue));
                 }}
                 className={durationError && durationTouched ? inputErrorClass : numInputClass}
-                style={{ fontFamily: 'var(--font-mono)', width: '72px' }}
+                style={{ fontFamily: 'var(--font-mono)' }}
               />
-              <span className="text-xs font-medium text-text-muted">min</span>
+              <span className="text-xs font-medium text-text-muted">{lang === 'ar' ? 'دقيقة' : 'min'}</span>
             </div>
             {durationError && durationTouched && (
               <div className="mt-1 flex items-center gap-1 text-xs text-coral">
@@ -291,9 +297,9 @@ export default function MethodAndSettings({
                   setMonthsError(validateMonths(monthsValue));
                 }}
                 className={monthsError && monthsTouched ? inputErrorClass : numInputClass}
-                style={{ fontFamily: 'var(--font-mono)', width: '72px' }}
+                style={{ fontFamily: 'var(--font-mono)' }}
               />
-              <span className="text-xs font-medium text-text-muted">months</span>
+              <span className="text-xs font-medium text-text-muted">{lang === 'ar' ? 'شهر' : 'months'}</span>
             </div>
             {monthsError && monthsTouched && (
               <div className="mt-1 flex items-center gap-1 text-xs text-coral">
@@ -346,7 +352,7 @@ export default function MethodAndSettings({
 
         {showAdvanced && (
           <div className="space-y-2.5">
-            {/* Toggle rows */}
+            {/* All toggle switches grouped together */}
             <ToggleSwitch
               checked={ramadanMode}
               onChange={setRamadanMode}
@@ -355,59 +361,6 @@ export default function MethodAndSettings({
               description={translations[lang].ramadanModeDescription}
             />
 
-            {ramadanMode && (
-              <div className="grid grid-cols-3 gap-2 ps-2">
-                {[
-                  {
-                    label: translations[lang].iftarDuration,
-                    value: iftarValue,
-                    onChange: handleIftarChange,
-                    onBlur: () => {
-                      setIftarTouched(true);
-                      setIftarError(validateIftar(iftarValue));
-                    },
-                    error: iftarError,
-                    touched: iftarTouched,
-                  },
-                  {
-                    label: translations[lang].traweehDuration,
-                    value: traweehValue,
-                    onChange: handleTraweehChange,
-                    onBlur: () => {
-                      setTraweehTouched(true);
-                      setTraweehError(validateTraweeh(traweehValue));
-                    },
-                    error: traweehError,
-                    touched: traweehTouched,
-                  },
-                  {
-                    label: translations[lang].suhoorDuration,
-                    value: suhoorValue,
-                    onChange: handleSuhoorChange,
-                    onBlur: () => {
-                      setSuhoorTouched(true);
-                      setSuhoorError(validateSuhoor(suhoorValue));
-                    },
-                    error: suhoorError,
-                    touched: suhoorTouched,
-                  },
-                ].map((f) => (
-                  <div key={f.label}>
-                    <label className="mb-1 block text-[11px] text-text-muted">{f.label}</label>
-                    <input
-                      type="number"
-                      value={f.value}
-                      onChange={(e) => f.onChange(e.target.value)}
-                      onBlur={f.onBlur}
-                      className={f.error && f.touched ? inputErrorClass : numInputClass}
-                      style={{ fontFamily: 'var(--font-mono)', width: '100%' }}
-                    />
-                    {f.error && f.touched && <div className="mt-0.5 text-[10px] text-coral">{f.error}</div>}
-                  </div>
-                ))}
-              </div>
-            )}
-
             <ToggleSwitch
               checked={jumuahMode}
               onChange={setJumuahMode}
@@ -415,24 +368,6 @@ export default function MethodAndSettings({
               label={`🕐 ${translations[lang].jumuahMode}`}
               description={translations[lang].jumuahModeDescription}
             />
-
-            {jumuahMode && (
-              <div className="ps-2">
-                <label className="mb-1 block text-[11px] text-text-muted">{translations[lang].jumuahDuration}</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={30}
-                    max={120}
-                    value={jumuahDuration}
-                    onChange={(e) => setJumuahDuration(Math.min(120, Math.max(30, parseInt(e.target.value, 10) || 30)))}
-                    className={numInputClass}
-                    style={{ fontFamily: 'var(--font-mono)' }}
-                  />
-                  <span className="text-xs text-text-muted">min</span>
-                </div>
-              </div>
-            )}
 
             <ToggleSwitch
               checked={travelMode}
@@ -458,13 +393,97 @@ export default function MethodAndSettings({
               description={translations[lang].duaAdhkarDescription}
             />
 
-            {/* Iqama Offsets */}
+            {/* Duration inputs for enabled modes */}
+            {(ramadanMode || jumuahMode) && (
+              <div className="border-t border-border-subtle pt-4">
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">
+                  {lang === 'ar' ? 'إعدادات المدة' : 'Duration Settings'}
+                </div>
+
+                {jumuahMode && (
+                  <div className="mb-3">
+                    <label className="mb-1 block text-[11px] text-text-muted">
+                      {translations[lang].jumuahDuration}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={30}
+                        max={120}
+                        value={jumuahDuration}
+                        onChange={(e) =>
+                          setJumuahDuration(Math.min(120, Math.max(30, parseInt(e.target.value, 10) || 30)))
+                        }
+                        className={numInputClass}
+                        style={{ fontFamily: 'var(--font-mono)' }}
+                      />
+                      <span className="text-xs text-text-muted">{lang === 'ar' ? 'دقيقة' : 'min'}</span>
+                    </div>
+                  </div>
+                )}
+
+                {ramadanMode && (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {[
+                      {
+                        label: translations[lang].iftarDuration,
+                        value: iftarValue,
+                        onChange: handleIftarChange,
+                        onBlur: () => {
+                          setIftarTouched(true);
+                          setIftarError(validateIftar(iftarValue));
+                        },
+                        error: iftarError,
+                        touched: iftarTouched,
+                      },
+                      {
+                        label: translations[lang].traweehDuration,
+                        value: traweehValue,
+                        onChange: handleTraweehChange,
+                        onBlur: () => {
+                          setTraweehTouched(true);
+                          setTraweehError(validateTraweeh(traweehValue));
+                        },
+                        error: traweehError,
+                        touched: traweehTouched,
+                      },
+                      {
+                        label: translations[lang].suhoorDuration,
+                        value: suhoorValue,
+                        onChange: handleSuhoorChange,
+                        onBlur: () => {
+                          setSuhoorTouched(true);
+                          setSuhoorError(validateSuhoor(suhoorValue));
+                        },
+                        error: suhoorError,
+                        touched: suhoorTouched,
+                      },
+                    ].map((f) => (
+                      <div key={f.label}>
+                        <label className="mb-1 block text-[11px] text-text-muted">{f.label}</label>
+                        <input
+                          type="number"
+                          value={f.value}
+                          onChange={(e) => f.onChange(e.target.value)}
+                          onBlur={f.onBlur}
+                          className={f.error && f.touched ? inputErrorClass : numInputClass}
+                          style={{ fontFamily: 'var(--font-mono)', width: '100%' }}
+                        />
+                        {f.error && f.touched && <div className="mt-0.5 text-[10px] text-coral">{f.error}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Iqama Offsets - All 5 prayers */}
             <div className="border-t border-border-subtle pt-4">
               <div className="mb-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">
                 {translations[lang].iqamaOffset}
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {[0, 2, 3, 5].map((idx) => (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {[0, 2, 3, 4, 5].map((idx) => (
                   <div key={idx} className="text-center">
                     <div className="mb-1 text-[11px] text-text-muted">{eventNames[lang][idx]}</div>
                     <input
