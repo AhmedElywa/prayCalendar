@@ -6,7 +6,8 @@ import Navigation from './Navigation';
 
 export default function PageLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="flex min-h-screen flex-col bg-gray-50 dark:bg-zinc-800">
+    <main className="relative z-[1] flex min-h-screen flex-col">
+      <div className="geo-pattern" />
       <Navigation />
       <div className="flex-1">{children}</div>
       <Footer />

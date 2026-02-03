@@ -23,7 +23,7 @@ const ThemeMenu: React.FC = () => {
     setSystemTheme(systemDark ? 'Dark' : 'Light');
   }, []);
 
-  const dark = theme === 'Dark' || (theme === 'System' && systemTheme === 'Dark');
+  const isLight = theme === 'Light' || (theme === 'System' && systemTheme === 'Light');
 
   useEffect(() => {
     switch (theme) {
@@ -34,12 +34,12 @@ const ThemeMenu: React.FC = () => {
         localStorage.setItem('theme', theme);
     }
 
-    if (dark) {
-      document.documentElement.classList.add('dark');
+    if (isLight) {
+      document.documentElement.classList.add('light');
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove('light');
     }
-  }, [theme, dark]);
+  }, [theme, isLight]);
 
   const themes: { name: Theme; icon: typeof ComputerDesktopIcon }[] = [
     {
@@ -59,11 +59,11 @@ const ThemeMenu: React.FC = () => {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
-        <MenuButton className="flex h-8 w-8 items-center justify-center rounded-md text-gray-700 transition hover:bg-gray-100 hover:text-sky-500 focus:outline-none dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-sky-400">
-          {dark ? (
-            <MoonIcon className="h-5 w-5" aria-hidden="true" />
-          ) : (
+        <MenuButton className="flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition hover:bg-bg-elevated hover:text-gold focus:outline-none">
+          {isLight ? (
             <SunIcon className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <MoonIcon className="h-5 w-5" aria-hidden="true" />
           )}
         </MenuButton>
       </div>
@@ -76,15 +76,15 @@ const ThemeMenu: React.FC = () => {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <MenuItems className="origin-top-end ring-opacity-5 absolute end-0 z-10 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black focus:outline-none dark:bg-zinc-800 dark:ring-zinc-700">
+        <MenuItems className="absolute end-0 z-10 mt-2 w-48 origin-top-end rounded-[var(--radius-md)] border border-border-subtle bg-bg-card py-1 shadow-lg focus:outline-none">
           {themes.map((item) => (
             <MenuItem key={item.name}>
               {({ active }) => (
                 <button
                   onClick={() => setTheme(item.name)}
                   className={classNames(
-                    active ? 'bg-gray-100 dark:bg-zinc-700' : '',
-                    theme === item.name ? 'text-sky-500 dark:text-sky-400' : 'text-gray-700 dark:text-gray-200',
+                    active ? 'bg-bg-elevated' : '',
+                    theme === item.name ? 'text-gold' : 'text-text-secondary',
                     'flex w-full items-center gap-3 px-4 py-2 text-left text-sm',
                   )}
                 >

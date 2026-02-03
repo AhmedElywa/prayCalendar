@@ -1,10 +1,22 @@
 import React from 'react';
 
 // Simple client-side cache for preview data
+export interface HijriDate {
+  day: string;
+  month: { number: number; en: string; ar: string };
+  year: string;
+  weekday: { en: string; ar: string };
+  holidays: string[];
+}
+
 const previewCache = new Map<
   string,
   {
-    data: { timings: Record<string, string>; nextPrayer: { name: string; time: number } | null };
+    data: {
+      timings: Record<string, string>;
+      nextPrayer: { name: string; time: number } | null;
+      hijriDate: HijriDate | null;
+    };
     timestamp: number;
   }
 >();
@@ -36,6 +48,7 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
   const [loading, setLoading] = React.useState(false);
   const [nextPrayer, setNextPrayer] = React.useState<{ name: string; time: number } | null>(null);
   const [todayTimings, setTodayTimings] = React.useState<Record<string, string> | null>(null);
+  const [hijriDate, setHijriDate] = React.useState<HijriDate | null>(null);
 
   const refreshTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,6 +56,7 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
     if ((inputMode === 'address' && !address) || (inputMode === 'coords' && (latitude === '' || longitude === ''))) {
       setNextPrayer(null);
       setTodayTimings(null);
+      setHijriDate(null);
       return;
     }
 
@@ -54,6 +68,7 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
       console.log('Using cached preview data:', cacheKey);
       setTodayTimings(cachedEntry.data.timings);
       setNextPrayer(cachedEntry.data.nextPrayer);
+      setHijriDate(cachedEntry.data.hijriDate);
       return;
     }
 
@@ -71,6 +86,17 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
       const timings: Record<string, string> = j.data.timings;
       setTodayTimings(timings);
 
+      const hijri: HijriDate | null = j.data.date?.hijri
+        ? {
+            day: j.data.date.hijri.day,
+            month: j.data.date.hijri.month,
+            year: j.data.date.hijri.year,
+            weekday: j.data.date.hijri.weekday,
+            holidays: j.data.date.hijri.holidays || [],
+          }
+        : null;
+      setHijriDate(hijri);
+
       const order = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
       const now = new Date();
       let upcoming: { name: string; time: number } | null = null;
@@ -87,7 +113,7 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
 
       // Cache the result
       previewCache.set(cacheKey, {
-        data: { timings, nextPrayer: upcoming },
+        data: { timings, nextPrayer: upcoming, hijriDate: hijri },
         timestamp: Date.now(),
       });
 
@@ -103,6 +129,7 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
     } catch {
       setNextPrayer(null);
       setTodayTimings(null);
+      setHijriDate(null);
     } finally {
       setLoading(false);
     }
@@ -128,5 +155,5 @@ export function useTimingsPreview(deps: UseTimingsPreviewDeps) {
     }, diff + 1000);
   }, [nextPrayer, fetchToday]);
 
-  return { loading, nextPrayer, todayTimings };
+  return { loading, nextPrayer, todayTimings, hijriDate };
 }

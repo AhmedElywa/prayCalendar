@@ -41,7 +41,7 @@ export default function PrayApp() {
   return (
     <PageLayout>
       <div className="mx-auto max-w-screen-sm space-y-6 px-4 py-8">
-        <h1 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-center text-2xl font-bold text-text-primary">
           {translations[lang].pwaPageTitle || 'Prayer View App'}
         </h1>
         {!collapsed && (
@@ -51,7 +51,7 @@ export default function PrayApp() {
             <button
               type="button"
               onClick={handleSave}
-              className="rounded-md bg-sky-500 px-4 py-2 text-sm font-medium text-white"
+              className="rounded-[var(--radius-sm)] bg-gold px-4 py-2 text-sm font-medium text-bg-primary hover:bg-gold-light"
             >
               {translations[lang].saveSettings || 'Save settings'}
             </button>
@@ -62,7 +62,7 @@ export default function PrayApp() {
             <button
               type="button"
               onClick={() => setCollapsed(false)}
-              className="text-sm text-sky-600 dark:text-sky-400"
+              className="text-sm text-gold hover:text-gold-light"
             >
               {translations[lang].changeSettings || 'Change settings'}
             </button>

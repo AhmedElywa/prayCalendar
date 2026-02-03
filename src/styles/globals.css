@@ -3,6 +3,128 @@
 @theme {
   --default-transition-duration: 150ms;
   --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-accent: var(--border-accent);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-gold-glow: var(--gold-glow);
+  --color-teal: var(--teal);
+  --color-teal-dim: var(--teal-dim);
+  --color-coral: var(--coral);
+  --color-coral-dim: var(--coral-dim);
+  --color-accent-blue: var(--blue);
+  --color-blue-dim: var(--blue-dim);
 }
 
-@variant dark (.dark &);
+@variant light (.light &);
+
+:root {
+  --bg-primary: #0C0F14;
+  --bg-secondary: #141820;
+  --bg-card: #1A1F2B;
+  --bg-card-hover: #212737;
+  --bg-elevated: #252B3A;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-accent: rgba(212,175,105,0.25);
+  --text-primary: #F0EDE6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --gold: #D4AF69;
+  --gold-light: #E8D5A3;
+  --gold-dark: #B8943D;
+  --gold-glow: rgba(212,175,105,0.15);
+  --teal: #5EEAD4;
+  --teal-dim: rgba(94,234,212,0.12);
+  --coral: #FB7185;
+  --coral-dim: rgba(251,113,133,0.12);
+  --blue: #60A5FA;
+  --blue-dim: rgba(96,165,250,0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-arabic: 'Amiri', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+.light {
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F2F1ED;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8F7F4;
+  --bg-elevated: #EDECE8;
+  --border-subtle: rgba(0,0,0,0.08);
+  --border-accent: rgba(180,140,60,0.3);
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-muted: #9A9A9A;
+  --gold: #9B7B2F;
+  --gold-light: #7A6020;
+  --gold-dark: #B8943D;
+  --gold-glow: rgba(155,123,47,0.08);
+  --teal: #0F766E;
+  --teal-dim: rgba(15,118,110,0.06);
+  --coral: #E11D48;
+  --coral-dim: rgba(225,29,72,0.06);
+  --blue: #2563EB;
+  --blue-dim: rgba(37,99,235,0.06);
+}
+
+/* Geometric background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 20%, var(--gold-glow) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, var(--teal-dim) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.geo-pattern {
+  position: fixed;
+  top: 0; left: 0; right: 0; height: 400px;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%23D4AF69' stroke-width='0.3' stroke-opacity='0.08'%3E%3Cpath d='M30 0L60 30L30 60L0 30z'/%3E%3Cpath d='M30 10L50 30L30 50L10 30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+}
+
+/* Pulse animation for next prayer */
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,105,0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(212,175,105,0); }
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-card-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* Print hide */
+@media print {
+  nav, .geo-pattern, body::before { display: none !important; }
+}

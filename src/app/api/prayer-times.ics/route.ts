@@ -1,8 +1,10 @@
 import ical, { ICalAlarmType, ICalCalendarMethod } from 'ical-generator';
 import { trackRequest } from 'lib/analytics';
 import { getCachedICS, getCoordinates, normalizeIcsParams, normalizeLocation, setCachedICS } from 'lib/cache';
+import { formatQiblaText } from 'lib/qibla';
 import moment from 'moment-timezone';
 import { type NextRequest, NextResponse } from 'next/server';
+import { getDuaForPrayer } from '../../../constants/duaData';
 import { translations } from '../../../constants/translations';
 import { getPrayerTimes } from '../../../prayerTimes';
 
@@ -62,7 +64,27 @@ export async function GET(request: NextRequest) {
   const duration = searchParams.get('duration');
   const events = searchParams.get('events');
   const lang = searchParams.get('lang') || 'en';
+  const color = searchParams.get('color');
   const months = searchParams.get('months');
+
+  // Extract travel mode parameter
+  const traveler = searchParams.get('traveler') === 'true';
+
+  // Extract Jumu'ah mode parameters
+  const jumuahMode = searchParams.get('jumuah') === 'true';
+  const jumuahDurationParam = parseInt(searchParams.get('jumuahDuration') || '60', 10);
+
+  // Extract Qibla direction parameter
+  const qiblaMode = searchParams.get('qibla') === 'true';
+
+  // Extract Du'a/Adhkar parameter
+  const duaMode = searchParams.get('dua') === 'true';
+
+  // Extract Iqama offset parameter (comma-separated per prayer: Fajr,Sunrise,Dhuhr,Asr,Maghrib,Isha,Midnight)
+  const iqamaParam = searchParams.get('iqama');
+  const iqamaOffsets = iqamaParam
+    ? iqamaParam.split(',').map((v) => Math.min(60, Math.max(0, parseInt(v, 10) || 0)))
+    : [];
 
   // Extract Ramadan mode parameters
   const ramadanMode = searchParams.get('ramadanMode') === 'true';
@@ -102,6 +124,13 @@ export async function GET(request: NextRequest) {
         'iftarDuration',
         'traweehDuration',
         'suhoorDuration',
+        'traveler',
+        'jumuah',
+        'jumuahDuration',
+        'color',
+        'qibla',
+        'dua',
+        'iqama',
       ].includes(key)
     ) {
       queryParams[key] = value;
@@ -190,6 +219,7 @@ export async function GET(request: NextRequest) {
       Iftar: 'الإفطار',
       Tarawih: 'التراويح',
       Suhoor: 'السحور',
+      Jumuah: 'الجمعة',
     };
 
     const allowedEvents = events
@@ -227,6 +257,11 @@ export async function GET(request: NextRequest) {
       },
     ]);
 
+    // Add calendar color if valid hex
+    if (color && /^#[0-9A-Fa-f]{6}$/.test(color)) {
+      calendar.x([{ key: 'X-APPLE-CALENDAR-COLOR', value: color }]);
+    }
+
     // Helper function to add alarms to an event
     const addAlarmsToEvent = (event: any, alarmString: string | null) => {
       if (!alarmString) return;
@@ -247,6 +282,19 @@ export async function GET(request: NextRequest) {
       }
     };
 
+    // Compute Qibla direction text once if enabled
+    let qiblaText = '';
+    if (qiblaMode) {
+      const coords = resolvedCoords || coordsFromApi || `${queryParams.latitude},${queryParams.longitude}`;
+      if (coords) {
+        const [lat, lng] = coords.split(',').map(Number);
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+          const validLang = ['en', 'ar'].includes(lang) ? lang : 'en';
+          qiblaText = formatQiblaText(lat, lng, validLang as 'en' | 'ar');
+        }
+      }
+    }
+
     const userTimezone = days[0].meta.timezone;
     for (const day of days) {
       if (moment(day.date.gregorian.date, 'DD-MM-YYYY').isBefore(moment.utc().tz(userTimezone), 'day')) continue;
@@ -254,23 +302,82 @@ export async function GET(request: NextRequest) {
       // Check if current day is in Ramadan for Ramadan mode
       const isRamadanDay = ramadanMode && isRamadan(day);
 
+      // Check if current day is Friday for Jumu'ah mode
+      const dayDate = moment(day.date.gregorian.date, 'DD-MM-YYYY');
+      const isFriday = jumuahMode && dayDate.day() === 5;
+
       for (const [name, time] of Object.entries(day.timings)) {
         if (!allowedEvents.includes(name)) continue;
 
+        // On Fridays with Jumu'ah mode, replace Dhuhr with Jumu'ah
+        const isJumuah = isFriday && name === 'Dhuhr';
+        const eventName = isJumuah
+          ? lang === 'ar'
+            ? arabicNames.Jumuah
+            : "Jumu'ah"
+          : lang === 'ar'
+            ? arabicNames[name] || name
+            : name;
+
         const startDate = moment(`${day.date.gregorian.date} ${time}`, 'DD-MM-YYYY HH:mm').toDate();
-        const eventDuration = name === 'Sunrise' ? 10 : name === 'Midnight' ? 1 : duration ? +duration : 25;
+        const isQasr = traveler && ['Dhuhr', 'Asr', 'Isha'].includes(name) && !isJumuah;
+        const eventDuration = isJumuah
+          ? jumuahDurationParam
+          : isQasr
+            ? 10
+            : name === 'Sunrise'
+              ? 10
+              : name === 'Midnight'
+                ? 1
+                : duration
+                  ? +duration
+                  : 25;
 
         // Keep original prayer durations even in Ramadan mode
         // We'll create separate events for Iftar and Tarawih below
 
+        // Build description with hijri date and qasr info
+        const hijri = day.date?.hijri;
+        const hijriStr = hijri
+          ? lang === 'ar'
+            ? `${hijri.day} ${hijri.month?.ar || hijri.month?.en} ${hijri.year}`
+            : `${hijri.day} ${hijri.month?.en} ${hijri.year}`
+          : '';
+        const descParts: string[] = [];
+        if (hijriStr) descParts.push(hijriStr);
+        if (qiblaText) descParts.push(qiblaText);
+        if (isQasr) descParts.push(lang === 'ar' ? 'صلاة مقصورة (قصر) - ركعتان' : "Shortened prayer (Qasr) - 2 rak'at");
+        if (duaMode) {
+          const dayOfYear = moment(day.date.gregorian.date, 'DD-MM-YYYY').dayOfYear();
+          const validLang = ['en', 'ar'].includes(lang) ? lang : 'en';
+          const dua = getDuaForPrayer(name, dayOfYear, validLang as 'en' | 'ar');
+          if (dua) descParts.push(dua);
+        }
+
         const event = calendar.createEvent({
           start: startDate,
           end: moment(startDate).add(eventDuration, 'minute').toDate(),
-          summary: lang === 'ar' ? arabicNames[name] || name : name,
+          summary: eventName,
           timezone: day.meta.timezone,
+          ...(descParts.length > 0 && { description: descParts.join('\n') }),
         });
 
         addAlarmsToEvent(event, alarm);
+
+        // Create Iqama event if offset is set for this prayer
+        const prayerIndex = allEvents.indexOf(name);
+        const iqamaOffset = prayerIndex >= 0 && prayerIndex < iqamaOffsets.length ? iqamaOffsets[prayerIndex] : 0;
+        if (iqamaOffset > 0) {
+          const iqamaStart = moment(startDate).add(iqamaOffset, 'minute').toDate();
+          const iqamaName = lang === 'ar' ? `إقامة ${arabicNames[name] || name}` : `Iqama ${eventName}`;
+          const iqamaEvent = calendar.createEvent({
+            start: iqamaStart,
+            end: moment(iqamaStart).add(eventDuration, 'minute').toDate(),
+            summary: iqamaName,
+            timezone: day.meta.timezone,
+          });
+          addAlarmsToEvent(iqamaEvent, alarm);
+        }
 
         // Create separate Iftar and Tarawih events during Ramadan
         if (isRamadanDay) {

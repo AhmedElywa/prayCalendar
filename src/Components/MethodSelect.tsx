@@ -1,4 +1,3 @@
-import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 import defaultMethod from './defaultMethod';
@@ -12,15 +11,20 @@ export function MethodSelectFields({ method, setMethod }: MethodSelectProps) {
   const { lang } = useAppContext();
   return (
     <>
-      <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-        <AdjustmentsHorizontalIcon className="h-5 w-5" />
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-text-muted">
         {translations[lang].method}
       </label>
       <div className="relative">
         <select
           value={method}
           onChange={(e) => setMethod(e.target.value)}
-          className="w-full appearance-none rounded-md border border-gray-300 bg-white py-2 ps-3 pe-10 shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+          className="w-full cursor-pointer appearance-none rounded-[var(--radius-sm)] border border-border-subtle bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition focus:border-gold focus:shadow-[0_0_0_3px_var(--gold-glow)]"
+          style={{
+            fontFamily: 'var(--font-sans)',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 14px center',
+          }}
         >
           {defaultMethod.map((m) => (
             <option key={m.value} value={m.value}>
@@ -28,21 +32,6 @@ export function MethodSelectFields({ method, setMethod }: MethodSelectProps) {
             </option>
           ))}
         </select>
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3">
-          <svg
-            className="h-5 w-5 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
       </div>
     </>
   );
@@ -50,7 +39,7 @@ export function MethodSelectFields({ method, setMethod }: MethodSelectProps) {
 
 export default function MethodSelect(props: MethodSelectProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-zinc-900">
+    <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-card p-6">
       <MethodSelectFields {...props} />
     </div>
   );

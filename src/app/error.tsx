@@ -8,11 +8,14 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-800">
+    <div className="flex min-h-screen items-center justify-center bg-bg-primary">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Something went wrong!</h2>
-        <p className="mt-4 text-gray-600 dark:text-gray-300">An error occurred while loading the prayer calendar.</p>
-        <button onClick={reset} className="mt-6 rounded-md bg-sky-400 px-4 py-2 text-white hover:bg-sky-500">
+        <h2 className="text-2xl font-bold text-text-primary">Something went wrong!</h2>
+        <p className="mt-4 text-text-secondary">An error occurred while loading the prayer calendar.</p>
+        <button
+          onClick={reset}
+          className="mt-6 rounded-[var(--radius-sm)] bg-gold px-4 py-2 font-medium text-bg-primary hover:bg-gold-light"
+        >
           Try again
         </button>
       </div>

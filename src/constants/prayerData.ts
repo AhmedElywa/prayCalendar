@@ -3,6 +3,11 @@ export const eventNames = {
   ar: ['الفجر', 'الشروق', 'الظهر', 'العصر', 'المغرب', 'العشاء', 'منتصف الليل'],
 };
 
+export const jumuahNames = {
+  en: "Jumu'ah",
+  ar: 'الجمعة',
+};
+
 export const alarmOptionsData = [
   { value: 5, label: { en: '5 minutes before', ar: 'قبل 5 دقائق' } },
   { value: 10, label: { en: '10 minutes before', ar: 'قبل 10 دقائق' } },

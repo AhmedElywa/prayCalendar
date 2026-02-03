@@ -1,4 +1,7 @@
-import { CodeBracketIcon, GlobeAltIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
 import { translations } from '../constants/translations';
 import { useAppContext } from '../contexts/AppContext';
 import type { Lang } from '../hooks/useLanguage';
@@ -6,46 +9,107 @@ import ThemeMenu from './Theme';
 
 export default function Navigation() {
   const { lang, setLang } = useAppContext();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <nav className="relative z-10 border-b border-gray-200 bg-white py-4 shadow-sm dark:border-gray-700 dark:bg-zinc-900 print:hidden">
-      <div className="mx-auto max-w-screen-lg px-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <a
-              href="https://github.com/AhmedElywa/prayCalendar"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 text-sm font-medium text-gray-700 transition hover:text-sky-500 dark:text-gray-200 dark:hover:text-sky-400"
-            >
-              <CodeBracketIcon className="h-4 w-4" />
-              {translations[lang].source}
-            </a>
-            <a
-              href="https://ahmedelywa.com"
-              className="flex items-center gap-2 text-sm font-medium text-gray-700 transition hover:text-sky-500 dark:text-gray-200 dark:hover:text-sky-400"
-            >
-              <UserCircleIcon className="h-4 w-4" />
-              {translations[lang].creator}
-            </a>
+    <nav className="sticky top-0 z-50 border-b border-border-subtle bg-[rgba(12,15,20,0.85)] light:bg-[rgba(250,250,248,0.9)] backdrop-blur-xl print:hidden">
+      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3 md:px-6 md:py-4">
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-2 text-text-primary no-underline md:gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-gradient-to-br from-gold to-gold-dark text-base shadow-[0_2px_12px_var(--gold-glow)] md:h-9 md:w-9 md:rounded-[10px] md:text-lg">
+            ☽
           </div>
-          <div className="flex items-center gap-4">
-            <ThemeMenu />
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2">
-                <GlobeAltIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              </div>
-              <select
-                value={lang}
-                onChange={(e) => setLang(e.target.value as Lang)}
-                className="block w-full appearance-none rounded-md border border-gray-300 bg-white py-2 ps-8 pe-3 text-sm shadow-sm transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
-              >
-                <option value="en">English</option>
-                <option value="ar">العربية</option>
-              </select>
-            </div>
-          </div>
+          <span className="text-base font-semibold tracking-tight md:text-lg">PrayCalendar</span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <div className="hidden items-center gap-2 md:flex">
+          <Link
+            href="/"
+            className="rounded-full border border-border-accent bg-bg-card px-3.5 py-1.5 text-[13px] font-medium text-gold-light no-underline transition hover:bg-bg-card-hover"
+          >
+            {translations[lang].homeLink}
+          </Link>
+          <Link
+            href="/pwa"
+            className="rounded-full border border-transparent px-3.5 py-1.5 text-[13px] font-medium text-text-secondary no-underline transition hover:border-border-subtle hover:bg-bg-card hover:text-text-primary"
+          >
+            {translations[lang].pwaLink}
+          </Link>
+          <Link
+            href="/api-docs"
+            className="rounded-full border border-transparent px-3.5 py-1.5 text-[13px] font-medium text-text-secondary no-underline transition hover:border-border-subtle hover:bg-bg-card hover:text-text-primary"
+          >
+            API
+          </Link>
+          <ThemeMenu />
+          <button
+            onClick={() => setLang(lang === 'en' ? 'ar' : ('en' as Lang))}
+            className="rounded-full border border-border-accent bg-gold-glow px-3.5 py-1.5 text-[13px] font-medium text-gold transition hover:bg-[rgba(212,175,105,0.2)]"
+          >
+            {lang === 'en' ? 'AR' : 'EN'} | {lang === 'en' ? 'EN' : 'AR'}
+          </button>
+        </div>
+
+        {/* Mobile: Theme + Lang + Hamburger */}
+        <div className="flex items-center gap-1.5 md:hidden">
+          <ThemeMenu />
+          <button
+            onClick={() => setLang(lang === 'en' ? 'ar' : ('en' as Lang))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-accent bg-gold-glow text-xs font-bold text-gold transition hover:bg-[rgba(212,175,105,0.2)]"
+            title={lang === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+          >
+            {lang === 'en' ? 'ع' : 'EN'}
+          </button>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-bg-secondary text-text-secondary transition hover:border-border-accent hover:text-text-primary"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="border-t border-border-subtle bg-bg-card px-4 py-3 md:hidden">
+          <div className="flex flex-col gap-1">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gold-light no-underline transition hover:bg-bg-secondary"
+            >
+              <span className="text-base">🏠</span>
+              {translations[lang].homeLink}
+            </Link>
+            <Link
+              href="/pwa"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary no-underline transition hover:bg-bg-secondary hover:text-text-primary"
+            >
+              <span className="text-base">📱</span>
+              {translations[lang].pwaLink}
+            </Link>
+            <Link
+              href="/api-docs"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary no-underline transition hover:bg-bg-secondary hover:text-text-primary"
+            >
+              <span className="text-base">📄</span>
+              API Documentation
+            </Link>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
