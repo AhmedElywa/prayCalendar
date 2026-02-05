@@ -10,3 +10,6 @@ Disallow: /api/
 
 # Block admin pages
 Disallow: /admin
+
+# Block invalid URLs (crawler artifacts)
+Disallow: /$
