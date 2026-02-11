@@ -5,7 +5,7 @@ services:
       - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --maxmemory 1gb --maxmemory-policy allkeys-lru
+    command: redis-server --maxmemory 1610612736 --maxmemory-policy volatile-lru --save 300 100 --save 60 10000
     restart: unless-stopped
 
 volumes:
