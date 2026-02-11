@@ -64,6 +64,11 @@ export function useLanguage(initial: Lang) {
     }
     document.documentElement.lang = lang;
     document.documentElement.dir = isRTL(lang) ? 'rtl' : 'ltr';
+    if (isRTL(lang)) {
+      document.documentElement.classList.add('arabic-font');
+    } else {
+      document.documentElement.classList.remove('arabic-font');
+    }
   }, [lang, isHydrated]);
 
   return { lang, setLang, isRTL: isRTL(lang) };

@@ -52,9 +52,9 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
-  --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
-  --font-arabic: 'Amiri', serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: var(--font-jetbrains-mono), monospace;
+  --font-arabic: var(--font-cairo), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
 .light {
@@ -78,6 +78,16 @@
   --coral-dim: rgba(225,29,72,0.06);
   --blue: #2563EB;
   --blue-dim: rgba(37,99,235,0.06);
+}
+
+/* Base body font */
+body {
+  font-family: var(--font-sans);
+}
+
+/* Arabic font switching */
+.arabic-font body {
+  font-family: var(--font-arabic);
 }
 
 /* Geometric background */

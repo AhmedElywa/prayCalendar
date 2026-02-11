@@ -1,8 +1,5 @@
-'use client';
-
 import Link from 'next/link';
 import PageLayout from '../../../Components/PageLayout';
-import { useAppContext } from '../../../contexts/AppContext';
 
 const sensorConfig = `rest:
   - resource: "https://pray.ahmedelywa.com/api/prayer-times.json?address=Cairo,Egypt&method=5"
@@ -97,8 +94,6 @@ entities:
     icon: mdi:moon-waning-crescent`;
 
 export default function HomeAssistantPage() {
-  useAppContext();
-
   return (
     <PageLayout>
       <div className="mx-auto max-w-screen-lg px-4 py-8">

@@ -1,7 +1,22 @@
 import { Analytics } from '@vercel/analytics/next';
+import { Cairo, JetBrains_Mono } from 'next/font/google';
 import '../styles/globals.css';
 import ServiceWorkerRegister from '../Components/ServiceWorkerRegister';
 import { AppProvider } from '../contexts/AppContext';
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin', 'cyrillic', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
+
+const cairo = Cairo({
+  subsets: ['arabic', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-cairo',
+  display: 'swap',
+});
 
 export const metadata = {
   metadataBase: new URL('https://pray.ahmedelywa.com'),
@@ -197,18 +212,12 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${jetbrainsMono.variable} ${cairo.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
-      <body style={{ fontFamily: 'var(--font-sans)' }} className="bg-bg-primary text-text-primary antialiased">
+      <body className="bg-bg-primary text-text-primary antialiased">
         <AppProvider>
           {children}
           <ServiceWorkerRegister />

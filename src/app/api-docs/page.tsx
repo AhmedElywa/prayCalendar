@@ -1,7 +1,4 @@
-'use client';
-
 import PageLayout from '../../Components/PageLayout';
-import { useAppContext } from '../../contexts/AppContext';
 
 const params = [
   {
@@ -164,8 +161,6 @@ const examples = [
 ];
 
 export default function ApiDocsPage() {
-  useAppContext();
-
   return (
     <PageLayout>
       <div className="mx-auto max-w-screen-lg px-4 py-8">

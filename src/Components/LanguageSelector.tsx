@@ -1,6 +1,6 @@
 'use client';
 
-import { isRTL, LANGUAGE_NAMES, type Lang } from '../hooks/useLanguage';
+import { LANGUAGE_NAMES, type Lang } from '../hooks/useLanguage';
 
 interface LanguageSelectorProps {
   currentLang: Lang;
@@ -47,7 +47,7 @@ export function LanguageSelectorCompact({ currentLang, onChange, className = '' 
       aria-label={`Current language: ${LANGUAGE_NAMES[currentLang].english}. Click to switch to ${LANGUAGE_NAMES[nextLang].english}`}
     >
       <span className="text-base">🌐</span>
-      <span className={isRTL(currentLang) ? 'font-arabic' : ''}>{LANGUAGE_NAMES[currentLang].native}</span>
+      <span>{LANGUAGE_NAMES[currentLang].native}</span>
     </button>
   );
 }

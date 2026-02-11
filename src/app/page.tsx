@@ -289,7 +289,7 @@ export default function HomePage() {
           >
             {translations[lang].title}
           </h1>
-          <p className="mx-auto max-w-[520px] text-[17px] font-light text-text-secondary">
+          <p className="mx-auto max-w-[520px] text-[17px] font-normal text-text-secondary">
             {lang === 'ar'
               ? 'اشترك مرة واحدة. احصل على أوقات صلاة دقيقة متزامنة مع تقويم جوجل أو آبل أو أوتلوك — يتم تحديثها تلقائيًا.'
               : 'Subscribe once. Get accurate prayer times synced to Google, Apple, or Outlook — updated automatically.'}

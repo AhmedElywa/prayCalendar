@@ -155,7 +155,7 @@ async function fetchRange(
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       const response = await fetch(url.toString(), {
-        next: { revalidate: 86400 },
+        cache: 'no-store',
         headers: {
           Accept: 'application/json',
           'User-Agent': 'PrayerCalendar/1.0',
