@@ -39,10 +39,19 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key -p 1993" \
             .next/standalone/ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/
 
+      - name: Write .env file
+        run: |
+          ssh -i ~/.ssh/deploy_key -p 1993 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "printf '%s\n' \
+            'PORT=3001' \
+            'ANALYTICS_KEY=${{ secrets.ANALYTICS_KEY }}' \
+            'REDIS_URL=${{ secrets.REDIS_URL }}' \
+            > ${{ secrets.DEPLOY_PATH }}/.env"
+
       - name: Restart PM2
         run: |
           ssh -i ~/.ssh/deploy_key -p 1993 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "\
             cd ${{ secrets.DEPLOY_PATH }} && \
             pm2 delete prayCalendar 2>/dev/null || true && \
-            ANALYTICS_KEY='${{ secrets.ANALYTICS_KEY }}' \
-            PORT=3001 pm2 start server.js --name prayCalendar --update-env"
+            set -a && source .env && set +a && \
+            pm2 start server.js --name prayCalendar && \
+            pm2 save"
