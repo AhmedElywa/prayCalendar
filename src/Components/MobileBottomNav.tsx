@@ -129,7 +129,10 @@ export default function MobileBottomNav() {
   const labels = shortLabels[lang] || shortLabels.en;
 
   return (
-    <nav className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-border-subtle pb-[env(safe-area-inset-bottom,0px)] md:hidden">
+    <nav
+      className="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-border-subtle md:hidden"
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}
+    >
       {/* Frosted glass background — extends 34px below to cover gap when browser chrome hides on scroll */}
       <div className="absolute inset-0 -bottom-[34px] bg-[rgba(12,15,20,0.92)] light:bg-[rgba(250,250,248,0.95)] backdrop-blur-2xl" />
 

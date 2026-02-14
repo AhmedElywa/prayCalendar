@@ -137,7 +137,7 @@ body::before {
 /* Mobile bottom nav spacing — prevent content from being hidden behind the bar */
 @media (max-width: 767px) {
   main {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(60px + max(env(safe-area-inset-bottom, 0px), 8px));
   }
 }
 
@@ -147,7 +147,7 @@ body::before {
 }
 @media (max-width: 767px) {
   .install-prompt-container {
-    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(60px + max(env(safe-area-inset-bottom, 0px), 8px));
   }
 }
 
