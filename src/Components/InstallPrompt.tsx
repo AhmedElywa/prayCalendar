@@ -71,7 +71,7 @@ export default function InstallPrompt() {
   if (dismissed || (!showNative && !showIOS)) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4">
+    <div className="install-prompt-container fixed inset-x-0 z-40 flex justify-center p-4">
       <div className="max-w-screen-sm flex-1 rounded-[var(--radius-lg)] border border-border-accent bg-bg-card p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.3)] backdrop-blur-xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">

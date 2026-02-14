@@ -5,7 +5,7 @@ import { useAppContext } from '../contexts/AppContext';
 export default function Footer() {
   const { lang } = useAppContext();
   return (
-    <footer className="border-t border-border-subtle py-10 mt-10">
+    <footer className="hidden border-t border-border-subtle py-10 mt-10 md:block">
       <div className="mx-auto max-w-[1200px] px-6">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}

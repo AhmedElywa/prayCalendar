@@ -2,6 +2,7 @@
 import type { ReactNode } from 'react';
 import Footer from './Footer';
 import InstallPrompt from './InstallPrompt';
+import MobileBottomNav from './MobileBottomNav';
 import Navigation from './Navigation';
 
 export default function PageLayout({ children }: { children: ReactNode }) {
@@ -12,6 +13,7 @@ export default function PageLayout({ children }: { children: ReactNode }) {
       <div className="flex-1">{children}</div>
       <Footer />
       <InstallPrompt />
+      <MobileBottomNav />
     </main>
   );
 }

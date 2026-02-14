@@ -134,7 +134,24 @@ body::before {
   border-radius: 6px;
 }
 
+/* Mobile bottom nav spacing — prevent content from being hidden behind the bar */
+@media (max-width: 767px) {
+  main {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Install prompt positioning — above bottom nav on mobile, at bottom on desktop */
+.install-prompt-container {
+  bottom: 0;
+}
+@media (max-width: 767px) {
+  .install-prompt-container {
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* Print hide */
 @media print {
-  nav, .geo-pattern, body::before { display: none !important; }
+  nav, .geo-pattern, body::before, .mobile-bottom-nav { display: none !important; }
 }
