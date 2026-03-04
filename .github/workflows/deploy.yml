@@ -26,6 +26,13 @@ jobs:
           cp -r .next/static .next/standalone/.next/static
           cp -r public .next/standalone/public
 
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -43,6 +50,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -p 1993 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "printf '%s\n' \
             'PORT=3001' \
+            'HOSTNAME=127.0.0.1' \
             'ANALYTICS_KEY=${{ secrets.ANALYTICS_KEY }}' \
             'REDIS_URL=${{ secrets.REDIS_URL }}' \
             > ${{ secrets.DEPLOY_PATH }}/.env"
@@ -53,5 +61,5 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }} && \
             pm2 delete prayCalendar 2>/dev/null || true && \
             set -a && source .env && set +a && \
-            pm2 start server.js --name prayCalendar && \
+            HOSTNAME=127.0.0.1 pm2 start server.js --name prayCalendar && \
             pm2 save"
