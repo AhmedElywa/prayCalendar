@@ -1,3 +1,8 @@
+# OS / IDE
+.DS_Store
+.idea/
+.husky/
+
 ### Node template
 # Logs
 logs
