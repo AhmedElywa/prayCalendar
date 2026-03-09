@@ -88,6 +88,29 @@ async function getDayStats(date: string) {
   };
 }
 
+export async function getPublicStats() {
+  const redis = await getRedis();
+  if (!redis) return null;
+
+  const date = today();
+  const [daily, total, uniqueUsers, topTimezones, topLangs] = await Promise.all([
+    redis.hGetAll(`stats:daily:${date}`),
+    redis.hGetAll('stats:total'),
+    redis.pfCount('stats:ips'),
+    redis.zRangeWithScores(`stats:timezones:${date}`, 0, 19, { REV: true }),
+    redis.zRangeWithScores(`stats:langs:${date}`, 0, 9, { REV: true }),
+  ]);
+
+  return {
+    totalRequests: Number(total.requests || 0),
+    uniqueUsers,
+    todayRequests: Number(daily.requests || 0),
+    topTimezones: topTimezones.map((e) => ({ name: e.value, count: e.score })),
+    topLanguages: topLangs.map((e) => ({ code: e.value, count: e.score })),
+    status: 'operational' as const,
+  };
+}
+
 export async function getAnalytics() {
   const redis = await getRedis();
   if (!redis) return null;
