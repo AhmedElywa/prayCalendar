@@ -100,21 +100,47 @@ const CodeIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
+const StatusIcon = ({ active }: { active: boolean }) => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    strokeWidth={active ? 2 : 1.5}
+    stroke="currentColor"
+    className="transition-all duration-200"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
+    />
+    {active && (
+      <path
+        d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
+        fill="currentColor"
+        fillOpacity={0.15}
+      />
+    )}
+  </svg>
+);
+
 const tabs = [
   { href: '/', icon: CalendarIcon, labelKey: 'homeLink' as const },
   { href: '/pwa', icon: MosqueIcon, labelKey: 'pwaLink' as const },
   { href: '/cities', icon: GlobeIcon, labelKey: 'allCities' as const },
   { href: '/api-docs', icon: CodeIcon, labelKey: 'apiDocs' as const },
+  { href: '/status', icon: StatusIcon, labelKey: 'status' as const },
 ] as const;
 
 // Short labels for the bottom nav (keep them concise)
 const shortLabels: Record<string, Record<string, string>> = {
-  en: { homeLink: 'Home', pwaLink: 'Prayers', allCities: 'Cities', apiDocs: 'API' },
-  ar: { homeLink: 'الرئيسية', pwaLink: 'الصلاة', allCities: 'المدن', apiDocs: 'API' },
-  tr: { homeLink: 'Ana', pwaLink: 'Namaz', allCities: 'Şehirler', apiDocs: 'API' },
-  fr: { homeLink: 'Accueil', pwaLink: 'Prières', allCities: 'Villes', apiDocs: 'API' },
-  ur: { homeLink: 'ہوم', pwaLink: 'نماز', allCities: 'شہر', apiDocs: 'API' },
-  id: { homeLink: 'Beranda', pwaLink: 'Shalat', allCities: 'Kota', apiDocs: 'API' },
+  en: { homeLink: 'Home', pwaLink: 'Prayers', allCities: 'Cities', apiDocs: 'API', status: 'Status' },
+  ar: { homeLink: 'الرئيسية', pwaLink: 'الصلاة', allCities: 'المدن', apiDocs: 'API', status: 'الحالة' },
+  tr: { homeLink: 'Ana', pwaLink: 'Namaz', allCities: 'Şehirler', apiDocs: 'API', status: 'Durum' },
+  fr: { homeLink: 'Accueil', pwaLink: 'Prières', allCities: 'Villes', apiDocs: 'API', status: 'État' },
+  ur: { homeLink: 'ہوم', pwaLink: 'نماز', allCities: 'شہر', apiDocs: 'API', status: 'حالت' },
+  id: { homeLink: 'Beranda', pwaLink: 'Shalat', allCities: 'Kota', apiDocs: 'API', status: 'Status' },
 };
 
 export default function MobileBottomNav() {
