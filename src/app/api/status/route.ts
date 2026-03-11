@@ -1,6 +1,8 @@
 import { getPublicStats } from 'lib/analytics';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const data = await getPublicStats();
   if (!data) {
@@ -9,7 +11,7 @@ export async function GET() {
 
   return NextResponse.json(data, {
     headers: {
-      'Cache-Control': 's-maxage=60, stale-while-revalidate=30',
+      'Cache-Control': 'no-store',
       'Access-Control-Allow-Origin': '*',
     },
   });
