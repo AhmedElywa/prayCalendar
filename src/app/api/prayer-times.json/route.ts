@@ -144,8 +144,14 @@ export async function GET(request: NextRequest) {
 }
 
 function getCorsHeaders() {
+  // Cache until midnight in UTC — prayer times don't change within a day for same params
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setUTCHours(24, 0, 0, 0);
+  const secondsUntilMidnight = Math.max(60, Math.floor((midnight.getTime() - now.getTime()) / 1000));
+
   return {
-    'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+    'Cache-Control': `public, max-age=${secondsUntilMidnight}, s-maxage=${secondsUntilMidnight}`,
     'Access-Control-Allow-Origin': '*',
   };
 }

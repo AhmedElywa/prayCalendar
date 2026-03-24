@@ -52,29 +52,30 @@ export default function WidgetContent({
       }
 
       try {
-        let url: string;
+        const params = new URLSearchParams({ method });
         if (latitude && longitude) {
-          url = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}`;
+          params.set('latitude', String(latitude));
+          params.set('longitude', String(longitude));
         } else if (address) {
-          url = `https://api.aladhan.com/v1/timingsByAddress?address=${encodeURIComponent(address)}&method=${method}`;
+          params.set('address', address);
         } else {
           throw new Error('No location');
         }
 
-        const res = await fetch(url);
+        const res = await fetch(`/api/prayer-times.json?${params}`);
         const data = await res.json();
 
-        if (data.code !== 200) {
-          throw new Error('Failed to fetch prayer times');
+        if (data.error) {
+          throw new Error(data.error);
         }
 
         const timings: PrayerTimes = {
-          Fajr: data.data.timings.Fajr,
-          Sunrise: data.data.timings.Sunrise,
-          Dhuhr: data.data.timings.Dhuhr,
-          Asr: data.data.timings.Asr,
-          Maghrib: data.data.timings.Maghrib,
-          Isha: data.data.timings.Isha,
+          Fajr: data.timings.Fajr,
+          Sunrise: data.timings.Sunrise,
+          Dhuhr: data.timings.Dhuhr,
+          Asr: data.timings.Asr,
+          Maghrib: data.timings.Maghrib,
+          Isha: data.timings.Isha,
         };
 
         setTimes(timings);
@@ -147,12 +148,14 @@ export default function WidgetContent({
         className={`flex items-center justify-between gap-4 p-3 ${bgClass} ${textClass}`}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        {prayerOrder.slice(0, 5).map((prayer) => (
-          <div key={prayer} className={`text-center ${prayer === nextPrayer ? 'font-bold text-amber-500' : ''}`}>
-            <div className={`text-xs ${mutedClass}`}>{prayerNames[lang][prayer]}</div>
-            <div className="text-sm">{times[prayer]}</div>
-          </div>
-        ))}
+        {prayerOrder
+          .filter((p) => p !== 'Sunrise')
+          .map((prayer) => (
+            <div key={prayer} className={`text-center ${prayer === nextPrayer ? 'font-bold text-amber-500' : ''}`}>
+              <div className={`text-xs ${mutedClass}`}>{prayerNames[lang][prayer]}</div>
+              <div className="text-sm">{times[prayer]}</div>
+            </div>
+          ))}
       </div>
     );
   }
